@@ -1,5 +1,6 @@
 import React from 'react';
 import { View, Text, FlatList, Image, ImageSourcePropType } from 'react-native';
+import Icon from 'react-native-vector-icons/FontAwesome'; // Import Icon component
 import { colors } from '../theme/colors'; // Assuming colors.ts is in src/theme
 import { AppStyles } from '../styles/AppStyles'; // Import AppStyles
 
@@ -67,28 +68,28 @@ const CommunityScreen = () => {
     <View style={AppStyles.postCard}>
       <View style={AppStyles.postHeader}>
         <View style={AppStyles.postAuthor}>
-          <Text style={{ fontSize: 24, color: '#ff0000', marginRight: 5 }}>👤</Text>
+          <Icon name="user-circle" size={24} color={'#ff0000'} style={{ marginRight: 5 }} />
           <Text style={AppStyles.authorName}>{item.author}</Text>
         </View>
         <Text style={AppStyles.postDate}>{item.date}</Text>
       </View>
-      
+
       <Text style={AppStyles.postTitle}>{item.title}</Text>
       <Text style={AppStyles.postContent}>{item.content}</Text>
-      
+
       {item.image ? (
         <Image source={item.image} style={AppStyles.postImage} />
       ) : (
         <Text style={AppStyles.imagePlaceholder}>No image available</Text>
       )}
-      
+
       <View style={AppStyles.postFooter}>
         <View style={AppStyles.postReaction}>
-          <Text style={{ fontSize: 16, color: '#ff0000', marginRight: 5 }}>❤️</Text>
+          <Icon name="heart" size={20} color={'#ff0000'} style={{ marginRight: 5 }} />
           <Text style={AppStyles.reactionText}>{item.likes}</Text>
         </View>
         <View style={AppStyles.postReaction}>
-          <Text style={{ fontSize: 16, color: '#ff0000', marginRight: 5 }}>💬</Text>
+          <Icon name="comment" size={20} color={'#ff0000'} style={{ marginRight: 5 }} />
           <Text style={AppStyles.reactionText}>{item.comments}</Text>
         </View>
       </View>
@@ -98,7 +99,7 @@ const CommunityScreen = () => {
   return (
     <View style={AppStyles.communityContainer}>
       <Text style={AppStyles.sectionTitle}>COMMUNITY POSTS</Text>
-      
+
       <FlatList
         data={posts}
         renderItem={renderPost}

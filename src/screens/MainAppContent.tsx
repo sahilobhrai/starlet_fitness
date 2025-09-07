@@ -39,73 +39,24 @@ function MainAppContent({ navigation }: { navigation: any }) {
   return (
     <SafeAreaView style={AppStyles.safeArea}>
       <StatusBar backgroundColor="#000" barStyle="light-content" />
-      
+
       {/* Custom Header */}
       <View style={AppStyles.customHeader}>
         <Image source={require('../images/logo_main.png')} style={AppStyles.headerLogo} />
         <View style={AppStyles.headerIcons}>
-          <TouchableOpacity style={AppStyles.headerIcon}>
-            <Icon name="search" size={24} color={colors.lightGray} />
-          </TouchableOpacity>
-          <TouchableOpacity style={AppStyles.headerIcon}>
-            <Icon name="bell" size={24} color={colors.lightGray} />
-          </TouchableOpacity>
           <TouchableOpacity style={AppStyles.headerIcon} onPress={() => setMenuVisible(true)}>
             <Icon name="bars" size={24} color={colors.lightGray} />
           </TouchableOpacity>
         </View>
       </View>
 
-      {/* Top Navigation */}
-      <View style={AppStyles.topNav}>
-        <TouchableOpacity 
-          style={[AppStyles.topNavButton, activeTab === 'book' && AppStyles.topNavButtonActive]}
-          onPress={() => setActiveTab('book')}
-        >
-          <Icon name="calendar" size={24} color={activeTab === 'book' ? '#ff0000' : '#888'} />
-          <Text style={[AppStyles.topNavText, activeTab === 'book' && AppStyles.topNavTextActive]}>
-            Book
-          </Text>
-        </TouchableOpacity>
-        
-        <TouchableOpacity 
-          style={[AppStyles.topNavButton, activeTab === 'chatbot' && AppStyles.topNavButtonActive]}
-          onPress={() => setActiveTab('chatbot')}
-        >
-          <Icon name="comments" size={24} color={activeTab === 'chatbot' ? '#ff0000' : '#888'} />
-          <Text style={[AppStyles.topNavText, activeTab === 'chatbot' && AppStyles.topNavTextActive]}>
-            Assistant
-          </Text>
-        </TouchableOpacity>
-        
-        <TouchableOpacity 
-          style={[AppStyles.topNavButton, activeTab === 'nutrition' && AppStyles.topNavButtonActive]}
-          onPress={() => setActiveTab('nutrition')}
-        >
-          <Icon name="apple" size={24} color={activeTab === 'nutrition' ? '#ff0000' : '#888'} />
-          <Text style={[AppStyles.topNavText, activeTab === 'nutrition' && AppStyles.topNavTextActive]}>
-            Nutrition
-          </Text>
-        </TouchableOpacity>
-        
-        <TouchableOpacity 
-          style={[AppStyles.topNavButton, activeTab === 'community' && AppStyles.topNavButtonActive]}
-          onPress={() => setActiveTab('community')}
-        >
-          <Icon name="users" size={24} color={activeTab === 'community' ? '#ff0000' : '#888'} />
-          <Text style={[AppStyles.topNavText, activeTab === 'community' && AppStyles.topNavTextActive]}>
-            Community
-          </Text>
-        </TouchableOpacity>
-      </View>
-      
       <View style={AppStyles.mainContent}>
         {renderContent()}
       </View>
-      
+
       {/* Bottom Navigation */}
       <View style={AppStyles.bottomNav}>
-        <TouchableOpacity 
+        <TouchableOpacity
           style={AppStyles.bottomNavButton}
           onPress={() => setActiveTab('book')}
         >
@@ -114,8 +65,8 @@ function MainAppContent({ navigation }: { navigation: any }) {
             Home
           </Text>
         </TouchableOpacity>
-        
-        <TouchableOpacity 
+
+        <TouchableOpacity
           style={AppStyles.bottomNavButton}
           onPress={() => setActiveTab('chatbot')}
         >
@@ -124,14 +75,14 @@ function MainAppContent({ navigation }: { navigation: any }) {
             Assistant
           </Text>
         </TouchableOpacity>
-        
-        <TouchableOpacity 
+
+        <TouchableOpacity
           style={AppStyles.bottomNavButton}
-          onPress={() => navigation.navigate('Profile')}
+          onPress={() => setActiveTab('community')}
         >
-          <Icon name="user" size={24} color={activeTab === 'profile' ? '#ff0000' : '#888'} />
-          <Text style={[AppStyles.bottomNavText, activeTab === 'profile' && AppStyles.bottomNavTextActive]}>
-            Profile
+          <Icon name="group" size={24} color={activeTab === 'community' ? '#ff0000' : '#888'} />
+          <Text style={[AppStyles.bottomNavText, activeTab === 'community' && AppStyles.bottomNavTextActive]}>
+            Community
           </Text>
         </TouchableOpacity>
       </View>
@@ -143,42 +94,42 @@ function MainAppContent({ navigation }: { navigation: any }) {
         visible={isMenuVisible}
         onRequestClose={() => setMenuVisible(false)}
       >
-        <TouchableOpacity 
-          style={AppStyles.menuOverlay} 
-          activeOpacity={1} 
+        <TouchableOpacity
+          style={AppStyles.menuOverlay}
+          activeOpacity={1}
           onPressOut={() => setMenuVisible(false)}
         >
           <View style={AppStyles.menuContainer}>
-            <TouchableOpacity 
-              style={AppStyles.menuItem} 
+            <TouchableOpacity
+              style={AppStyles.menuItem}
               onPress={() => navigateAndCloseMenu('Settings')}
             >
               <Icon name="cog" size={20} color={colors.lightGray} style={AppStyles.menuIcon} />
               <Text style={AppStyles.menuItemText}>Settings</Text>
             </TouchableOpacity>
-            <TouchableOpacity 
-              style={AppStyles.menuItem} 
+            <TouchableOpacity
+              style={AppStyles.menuItem}
               onPress={() => navigateAndCloseMenu('Notifications')}
             >
               <Icon name="bell" size={20} color={colors.lightGray} style={AppStyles.menuIcon} />
               <Text style={AppStyles.menuItemText}>Notifications</Text>
             </TouchableOpacity>
-            <TouchableOpacity 
-              style={AppStyles.menuItem} 
+            <TouchableOpacity
+              style={AppStyles.menuItem}
               onPress={() => navigateAndCloseMenu('LocateUs')}
             >
               <Icon name="map-marker" size={20} color={colors.lightGray} style={AppStyles.menuIcon} />
               <Text style={AppStyles.menuItemText}>Locate Us</Text>
             </TouchableOpacity>
-            <TouchableOpacity 
-              style={AppStyles.menuItem} 
+            <TouchableOpacity
+              style={AppStyles.menuItem}
               onPress={() => navigateAndCloseMenu('Help')}
             >
               <Icon name="question-circle" size={20} color={colors.lightGray} style={AppStyles.menuIcon} />
               <Text style={AppStyles.menuItemText}>Help</Text>
             </TouchableOpacity>
-            <TouchableOpacity 
-              style={AppStyles.menuItem} 
+            <TouchableOpacity
+              style={AppStyles.menuItem}
               onPress={() => {
                 setMenuVisible(false);
                 navigation.navigate('Profile');

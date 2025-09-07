@@ -48,20 +48,14 @@ const SettingsScreen = ({ navigation }: { navigation: any }) => {
           />
         </View>
 
-        {/* Account Settings */}
-        <TouchableOpacity style={styles.settingItem}>
-          <Text style={styles.settingText}>Account Information</Text>
-          <Icon name="chevron-right" size={18} color={colors.mediumGray} />
-        </TouchableOpacity>
-
         {/* Privacy Policy */}
-        <TouchableOpacity style={styles.settingItem}>
+        <TouchableOpacity style={styles.settingItem} onPress={() => navigation.navigate('PrivacyPolicy')}>
           <Text style={styles.settingText}>Privacy Policy</Text>
           <Icon name="chevron-right" size={18} color={colors.mediumGray} />
         </TouchableOpacity>
 
         {/* Terms of Service */}
-        <TouchableOpacity style={styles.settingItem}>
+        <TouchableOpacity style={styles.settingItem} onPress={() => navigation.navigate('TermsOfService')}>
           <Text style={styles.settingText}>Terms of Service</Text>
           <Icon name="chevron-right" size={18} color={colors.mediumGray} />
         </TouchableOpacity>

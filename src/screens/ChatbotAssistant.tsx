@@ -37,25 +37,44 @@ const ChatbotAssistant = ({ navigation, setActiveTab }: ChatbotAssistantProps) =
     <View style={AppStyles.chatbotContainer}>
       <Text style={AppStyles.sectionTitle}>YOUR FITNESS ASSISTANT</Text>
       <Text style={AppStyles.chatbotGreeting}>{greeting}</Text>
+      <Text style={AppStyles.chatbotQuestion}>How can I help you today?</Text>
 
       <View style={AppStyles.chatbotOptions}>
-        <TouchableOpacity 
+        <TouchableOpacity
           style={AppStyles.chatbotOptionButton}
           onPress={() => setActiveTab('book')}
         >
           <Text style={AppStyles.chatbotOptionButtonText}>Book a Training Session</Text>
         </TouchableOpacity>
-        <TouchableOpacity 
+        <TouchableOpacity
           style={AppStyles.chatbotOptionButton}
           onPress={() => setActiveTab('nutrition')}
         >
           <Text style={AppStyles.chatbotOptionButtonText}>Nutrition</Text>
         </TouchableOpacity>
-        <TouchableOpacity 
+        <TouchableOpacity
           style={AppStyles.chatbotOptionButton}
           onPress={() => setActiveTab('community')}
         >
           <Text style={AppStyles.chatbotOptionButtonText}>Community</Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={AppStyles.chatbotOptionButton}
+          onPress={() => navigation.navigate('Help')}
+        >
+          <Text style={AppStyles.chatbotOptionButtonText}>Help</Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={AppStyles.chatbotOptionButton}
+          onPress={() => navigation.navigate('LocateUs')}
+        >
+          <Text style={AppStyles.chatbotOptionButtonText}>Locate Us</Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={AppStyles.chatbotOptionButton}
+          onPress={() => navigation.navigate('Settings')}
+        >
+          <Text style={AppStyles.chatbotOptionButtonText}>Settings</Text>
         </TouchableOpacity>
       </View>
 

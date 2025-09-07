@@ -14,10 +14,10 @@ export const AppStyles = StyleSheet.create({
     letterSpacing: 1,
     borderBottomWidth: 1,
     borderBottomColor: colors.darkGray,
+    marginBottom: 5, // Added 2px margin after the heading
   },
   modalContainer: {
     flex: 1,
-    justifyContent: 'center',
     alignItems: 'center',
     backgroundColor: 'rgba(0,0,0,0.8)',
   },
@@ -285,30 +285,28 @@ export const AppStyles = StyleSheet.create({
   },
   customHeader: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
+    justifyContent: 'flex-start', // Align items to the start (left)
     alignItems: 'center',
-    padding: 20,
+    padding: 5, // Further reduced padding to push logo further left
     backgroundColor: colors.black,
     borderBottomWidth: 1,
     borderBottomColor: colors.darkGray,
   },
   headerLogo: {
-    width: 120,
-    height: 40,
+    width: 120, // Increased size slightly
+    height: 55, // Increased size slightly
     resizeMode: 'contain',
+    // marginRight: 50, // Removed to push to the left corner
   },
-  greetingText: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: colors.lightGray,
+  headerIcons: {
+    flexDirection: 'row',
+    position: 'absolute', // Position icons absolutely to the right
+    right: 20,
   },
   quoteText: {
     fontSize: 14,
     color: colors.mediumGray,
     marginTop: 5,
-  },
-  headerIcons: {
-    flexDirection: 'row',
   },
   headerIcon: {
     marginLeft: 15,
@@ -317,14 +315,14 @@ export const AppStyles = StyleSheet.create({
     flexDirection: 'row',
     backgroundColor: colors.black,
     elevation: 4,
-    paddingVertical: 10,
+    paddingVertical: 20, // Increased padding for better vertical spacing
     borderBottomWidth: 1,
     borderBottomColor: colors.darkGray
   },
   topNavButton: {
     flex: 1,
     alignItems: 'center',
-    padding: 10,
+    padding: 18, // Increased padding for better spacing around text and icons
     flexDirection: 'row',
     justifyContent: 'center',
     borderRadius: 20,
@@ -336,10 +334,11 @@ export const AppStyles = StyleSheet.create({
   topNavText: {
     marginLeft: 5,
     color: colors.lightGray,
-    fontWeight: '500'
+    fontWeight: 'bold' // Made bold for better visibility as headings
   },
   topNavTextActive: {
-    color: colors.lightGray
+    color: colors.lightGray,
+    fontWeight: 'bold' // Made active text bold as well for consistency
   },
   mainContent: {
     flex: 1,
@@ -447,6 +446,13 @@ export const AppStyles = StyleSheet.create({
     color: colors.lightGray,
     textAlign: 'center',
     marginVertical: 20,
+    paddingHorizontal: 20,
+  },
+  chatbotQuestion: { // Added new style for the question
+    fontSize: 18,
+    color: colors.mediumGray,
+    textAlign: 'center',
+    marginBottom: 20,
     paddingHorizontal: 20,
   },
   chatbotOptions: {
