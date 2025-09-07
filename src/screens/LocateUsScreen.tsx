@@ -42,12 +42,6 @@ const LocateUsScreen = ({ navigation }: { navigation: any }) => {
           </TouchableOpacity>
         </View>
 
-        <View style={styles.infoCard}>
-          <Text style={styles.cardTitle}>Opening Hours</Text>
-          <Text style={styles.detailText}>Monday - Friday: 6:00 AM - 10:00 PM</Text>
-          <Text style={styles.detailText}>Saturday: 8:00 AM - 8:00 PM</Text>
-          <Text style={styles.detailText}>Sunday: 8:00 AM - 6:00 PM</Text>
-        </View>
 
         <View style={styles.infoCard}>
           <Text style={styles.cardTitle}>Follow Us</Text>
@@ -58,9 +52,7 @@ const LocateUsScreen = ({ navigation }: { navigation: any }) => {
             <TouchableOpacity onPress={() => Linking.openURL('https://instagram.com/starletfitness')}>
               <Icon name="instagram" size={30} color={colors.lightGray} style={styles.socialIcon} />
             </TouchableOpacity>
-            <TouchableOpacity onPress={() => Linking.openURL('https://twitter.com/starletfitness')}>
-              <Icon name="twitter-square" size={30} color={colors.lightGray} style={styles.socialIcon} />
-            </TouchableOpacity>
+
           </View>
         </View>
       </ScrollView>

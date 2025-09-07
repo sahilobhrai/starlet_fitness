@@ -3,6 +3,7 @@ import { View, Text, TouchableOpacity, SafeAreaView, StatusBar, Dimensions, Moda
 import Icon from 'react-native-vector-icons/FontAwesome';
 import { colors } from '../theme/colors'; // Assuming colors.ts is in src/theme
 import { AppStyles } from '../styles/AppStyles'; // Import AppStyles
+import AsyncStorage from '@react-native-async-storage/async-storage'; // Import AsyncStorage
 
 // Import the individual screen components
 import BookSession from './BookSession';
@@ -15,6 +16,7 @@ const { width } = Dimensions.get('window');
 function MainAppContent({ navigation }: { navigation: any }) {
   const [activeTab, setActiveTab] = useState('book');
   const [isMenuVisible, setMenuVisible] = useState(false);
+  const [showLogoutConfirm, setShowLogoutConfirm] = useState(false); // New state for confirmation modal
 
   const renderContent = () => {
     switch (activeTab) {
@@ -34,6 +36,27 @@ function MainAppContent({ navigation }: { navigation: any }) {
   const navigateAndCloseMenu = (screenName: string) => {
     navigation.navigate(screenName);
     setMenuVisible(false);
+  };
+
+  const confirmLogout = async () => {
+    try {
+      await AsyncStorage.removeItem('userToken'); // Remove the user token
+      setMenuVisible(false); // Close the menu
+      setShowLogoutConfirm(false); // Hide the confirmation modal
+      navigation.replace('Splash'); // Navigate back to the splash screen to re-evaluate auth status
+    } catch (error) {
+      console.error('Error logging out', error);
+      // Optionally show an error notification to the user
+    }
+  };
+
+  const cancelLogout = () => {
+    setShowLogoutConfirm(false);
+  };
+
+  // Modified handleLogout to trigger the modal
+  const handleLogout = () => {
+    setShowLogoutConfirm(true);
   };
 
   return (
@@ -107,13 +130,7 @@ function MainAppContent({ navigation }: { navigation: any }) {
               <Icon name="cog" size={20} color={colors.lightGray} style={AppStyles.menuIcon} />
               <Text style={AppStyles.menuItemText}>Settings</Text>
             </TouchableOpacity>
-            <TouchableOpacity
-              style={AppStyles.menuItem}
-              onPress={() => navigateAndCloseMenu('Notifications')}
-            >
-              <Icon name="bell" size={20} color={colors.lightGray} style={AppStyles.menuIcon} />
-              <Text style={AppStyles.menuItemText}>Notifications</Text>
-            </TouchableOpacity>
+
             <TouchableOpacity
               style={AppStyles.menuItem}
               onPress={() => navigateAndCloseMenu('LocateUs')}
@@ -138,8 +155,39 @@ function MainAppContent({ navigation }: { navigation: any }) {
               <Icon name="user" size={20} color={colors.lightGray} style={AppStyles.menuIcon} />
               <Text style={AppStyles.menuItemText}>Profile</Text>
             </TouchableOpacity>
+            {/* Logout Button */}
+            <TouchableOpacity
+              style={AppStyles.menuItem}
+              onPress={handleLogout} // Call handleLogout function
+            >
+              <Icon name="sign-out" size={20} color={colors.lightGray} style={AppStyles.menuIcon} />
+              <Text style={AppStyles.menuItemText}>Logout</Text>
+            </TouchableOpacity>
           </View>
         </TouchableOpacity>
+      </Modal>
+
+      {/* Logout Confirmation Modal */}
+      <Modal
+        visible={showLogoutConfirm}
+        transparent={true}
+        animationType="fade"
+      >
+        <View style={AppStyles.modalContainer}>
+          <View style={AppStyles.modalContent}>
+            <Text style={{ fontSize: 60, color: '#ff0000' }}>✓</Text> {/* Placeholder icon */}
+            <Text style={AppStyles.modalTitle}>Confirm Logout</Text>
+            <Text style={AppStyles.modalText}>Are you sure you want to log out?</Text>
+            <View style={AppStyles.modalButtonContainer}>
+              <TouchableOpacity style={[AppStyles.modalButton, AppStyles.modalButtonCancel]} onPress={cancelLogout}>
+                <Text style={AppStyles.modalButtonText}>Cancel</Text>
+              </TouchableOpacity>
+              <TouchableOpacity style={[AppStyles.modalButton, AppStyles.modalButtonConfirm]} onPress={confirmLogout}>
+                <Text style={AppStyles.modalButtonText}>Logout</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
       </Modal>
     </SafeAreaView>
   );

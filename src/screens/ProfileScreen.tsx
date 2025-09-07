@@ -58,10 +58,6 @@ const ProfileScreen = ({ navigation }: ProfileScreenProps) => {
         </View>
       </View>
 
-      <TouchableOpacity style={AppStyles.logoutButton} onPress={handleLogout}>
-        <Text style={AppStyles.logoutButtonText}>LOGOUT</Text>
-      </TouchableOpacity>
-
       <Modal
         visible={showLogoutConfirm}
         transparent={true}
@@ -83,7 +79,7 @@ const ProfileScreen = ({ navigation }: ProfileScreenProps) => {
           </View>
         </View>
       </Modal>
-    </View>
+    </View >
   );
 };
 

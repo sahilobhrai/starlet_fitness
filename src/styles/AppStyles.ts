@@ -19,6 +19,7 @@ export const AppStyles = StyleSheet.create({
   modalContainer: {
     flex: 1,
     alignItems: 'center',
+    justifyContent: 'center', // Added to center vertically
     backgroundColor: 'rgba(0,0,0,0.8)',
   },
   modalContent: {
@@ -31,7 +32,7 @@ export const AppStyles = StyleSheet.create({
     borderColor: colors.darkGray,
   },
   modalTitle: {
-    fontSize: 20,
+    fontSize: 18,
     fontWeight: 'bold',
     marginVertical: 10,
     color: colors.lightGray,
@@ -76,6 +77,20 @@ export const AppStyles = StyleSheet.create({
     height: 200,
     resizeMode: 'contain',
     marginBottom: 20,
+  },
+  // OTPScreen Logo and Message Styles
+  logo: {
+    width: 150, // Adjust size as needed
+    height: 150, // Adjust size as needed
+    resizeMode: 'contain',
+    marginBottom: 20,
+  },
+  whatsappMessage: {
+    fontSize: 16,
+    color: colors.mediumGray,
+    textAlign: 'center',
+    marginBottom: 20,
+    paddingHorizontal: 20,
   },
 
   // IntroductionScreen Styles
@@ -161,12 +176,12 @@ export const AppStyles = StyleSheet.create({
     alignItems: 'center'
   },
   otpTitle: {
-    fontSize: 22,
+    fontSize: 20,
     fontWeight: 'bold',
     marginBottom: 10,
     textAlign: 'center',
     color: colors.lightGray,
-    letterSpacing: 1
+    letterSpacing: 0.6 // Reduced letter spacing to prevent wrapping
   },
   otpSubtitle: {
     fontSize: 16,
@@ -181,12 +196,12 @@ export const AppStyles = StyleSheet.create({
     borderColor: colors.darkGray,
     borderRadius: 8,
     marginBottom: 30,
-    paddingHorizontal: 10,
+    paddingHorizontal: 0,
     backgroundColor: colors.darkGray,
     width: 260,
   },
   countryCode: {
-    fontSize: 16,
+    fontSize: 14,
     padding: 15,
     fontWeight: 'bold',
     color: colors.lightGray
@@ -194,11 +209,11 @@ export const AppStyles = StyleSheet.create({
   mobileInput: {
     flex: 1,
     padding: 15,
-    fontSize: 16,
+    fontSize: 14,
     color: colors.lightGray
   },
   otpLabel: {
-    fontSize: 16,
+    fontSize: 14,
     marginBottom: 15,
     textAlign: 'center',
     color: colors.lightGray,
@@ -407,7 +422,17 @@ export const AppStyles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  timeSlotUnavailable: {
+  // New styles for slot availability colors
+  timeSlotBooked: { // Booked slot → Disabled & Light/Dark Red
+    backgroundColor: colors.red, // Using colors.red for dark red, or define a specific dark red if needed
+  },
+  timeSlotOneAvailable: { // 1 slot available → Light Green
+    backgroundColor: colors.lightGreen,
+  },
+  timeSlotTwoAvailable: { // 2 slots available → Bottle Green
+    backgroundColor: colors.bottleGreen, // Assuming colors.bottleGreen exists or define it
+  },
+  timeSlotUnavailable: { // General unavailable style (can be same as booked or a different gray)
     backgroundColor: colors.mediumGray,
   },
   timeSlotSelected: {
@@ -416,8 +441,18 @@ export const AppStyles = StyleSheet.create({
   timeSlotText: {
     color: colors.lightGray,
   },
+  // New styles for slot availability text colors
+  timeSlotTextBooked: {
+    color: colors.lightGray, // Text color for booked slots
+  },
+  timeSlotTextOneAvailable: {
+    color: colors.black, // Text color for 1 slot available
+  },
+  timeSlotTextTwoAvailable: {
+    color: colors.black, // Text color for 2 slots available
+  },
   timeSlotTextUnavailable: {
-    color: colors.darkGray,
+    color: colors.darkGray, // Text color for unavailable slots
   },
   timeSlotTextSelected: {
     color: colors.black,
@@ -430,6 +465,54 @@ export const AppStyles = StyleSheet.create({
     marginTop: 20,
   },
   confirmButtonText: {
+    color: colors.lightGray,
+    fontSize: 16,
+    fontWeight: 'bold',
+    letterSpacing: 1,
+  },
+
+  // Styles for the confirmation modal (Are you sure?)
+  slotSelectionContainer: {
+    marginVertical: 20,
+    alignItems: 'center',
+  },
+  slotSelectionLabel: {
+    fontSize: 16,
+    color: colors.lightGray,
+    marginBottom: 10,
+    fontWeight: 'bold',
+  },
+  slotSelectionButtons: {
+    flexDirection: 'row',
+  },
+  slotSelectionButton: {
+    width: 50,
+    height: 50,
+    borderRadius: 8,
+    backgroundColor: colors.darkGray,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginHorizontal: 10,
+  },
+  slotSelectionButtonSelected: {
+    backgroundColor: colors.lightGray,
+  },
+  slotSelectionButtonText: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: colors.lightGray,
+  },
+  slotSelectionButtonTextSelected: {
+    color: colors.black,
+  },
+  cancelButton: { // Style for the cancel button in the modal
+    backgroundColor: colors.mediumGray,
+    padding: 15,
+    borderRadius: 8,
+    alignItems: 'center',
+    marginTop: 20,
+  },
+  cancelButtonText: {
     color: colors.lightGray,
     fontSize: 16,
     fontWeight: 'bold',
@@ -755,5 +838,38 @@ export const AppStyles = StyleSheet.create({
     fontSize: 18,
     color: colors.lightGray,
     fontWeight: 'bold',
+  },
+
+  // Added styles for BookSession's "My Bookings" section
+  myBookingsContainer: {
+    marginTop: 30,
+    paddingHorizontal: 15,
+  },
+  bookingItem: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    backgroundColor: colors.darkGray,
+    padding: 15,
+    borderRadius: 8,
+    marginBottom: 10,
+  },
+  bookingText: {
+    fontSize: 16,
+    color: colors.lightGray,
+  },
+  bookingCancelButton: { // Style for the cancel button in the booking list
+    backgroundColor: colors.red, // Red color for cancel button
+    paddingVertical: 8,
+    paddingHorizontal: 15,
+    borderRadius: 5,
+  },
+  bookingCancelButtonText: {
+    color: colors.lightGray,
+    fontSize: 14,
+    fontWeight: 'bold',
+  },
+  bookingCancelButtonDisabled: {
+    backgroundColor: colors.mediumGray, // Gray out when disabled
   },
 });

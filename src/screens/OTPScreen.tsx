@@ -1,8 +1,12 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { View, Text, TouchableOpacity, TextInput, Dimensions } from 'react-native';
+import { View, Text, TouchableOpacity, TextInput, Dimensions, Image } from 'react-native'; // Added Image
 import { colors } from '../theme/colors'; // Assuming colors.ts is in src/theme
 import Notification from '../components/Notification'; // Import the Notification component
 import { AppStyles } from '../styles/AppStyles'; // Import AppStyles
+import AsyncStorage from '@react-native-async-storage/async-storage'; // Import AsyncStorage
+
+// Import the logo
+import logo from '../images/logo_main.png'; // Assuming logo.png is the correct file
 
 const { width } = Dimensions.get('window');
 
@@ -46,12 +50,20 @@ const OTPScreen = ({ navigation }: OTPScreenProps) => {
     focusNext(index, text);
   };
 
-  const handleVerify = () => {
+  const handleVerify = async () => { // Made function async
     const enteredOtp = otp.join('');
     const correctOtp = '1234'; // Hardcoded OTP
 
     if (enteredOtp === correctOtp) {
       setNotification({ message: 'OTP Verified! Redirecting to dashboard...', type: 'success', isVisible: true });
+      // Save the user token to AsyncStorage
+      try {
+        await AsyncStorage.setItem('userToken', 'dummy-user-token'); // Replace with actual token generation if needed
+      } catch (error) {
+        console.error('Error saving token to AsyncStorage', error);
+        setNotification({ message: 'Error saving login status.', type: 'error', isVisible: true });
+        return; // Stop execution if saving fails
+      }
       setTimeout(() => {
         navigation.replace('MainApp'); // Navigate to MainApp on successful verification
       }, 1000);
@@ -76,9 +88,14 @@ const OTPScreen = ({ navigation }: OTPScreenProps) => {
     <View style={AppStyles.otpScreenContainer}>
       <View style={AppStyles.otpOverlay}>
         <View style={AppStyles.otpContainer}>
+          <Image
+            source={logo}
+            style={AppStyles.logo} // Assuming a style for the logo will be defined in AppStyles
+            resizeMode="contain"
+          />
           <Text style={AppStyles.otpTitle}>MOBILE AUTHENTICATION</Text>
-          <Text style={AppStyles.otpSubtitle}>Enter your mobile number to receive OTP</Text>
-          
+          <Text style={AppStyles.otpSubtitle}>Please enter the mobile number linked with WhatsApp.</Text>
+
           <View style={AppStyles.mobileInputContainer}>
             <Text style={AppStyles.countryCode}>+91</Text>
             <TextInput
@@ -95,9 +112,9 @@ const OTPScreen = ({ navigation }: OTPScreenProps) => {
               maxLength={10}
             />
           </View>
-          
+
           {!showOtpSection && mobile.length === 10 && (
-            <TouchableOpacity 
+            <TouchableOpacity
               style={AppStyles.nextButton}
               onPress={handleNext}
             >
@@ -131,8 +148,8 @@ const OTPScreen = ({ navigation }: OTPScreenProps) => {
                   />
                 ))}
               </View>
-              
-              <TouchableOpacity 
+
+              <TouchableOpacity
                 style={[
                   AppStyles.verifyButton,
                   (otp.join('').length !== 4 || mobile.length !== 10) && AppStyles.verifyButtonDisabled
@@ -142,7 +159,7 @@ const OTPScreen = ({ navigation }: OTPScreenProps) => {
               >
                 <Text style={AppStyles.verifyButtonText}>VERIFY OTP</Text>
               </TouchableOpacity>
-              
+
               <TouchableOpacity style={AppStyles.resendContainer}>
                 <Text style={AppStyles.resendText}>Didn't receive OTP? </Text>
                 <Text style={AppStyles.resendLink}>Resend</Text>
