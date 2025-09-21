@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, TouchableOpacity, Modal, Image } from 'react-native';
+import { View, Text, TouchableOpacity, Modal, Image, ScrollView, TextInput } from 'react-native';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import { colors } from '../theme/colors'; // Assuming colors.ts is in src/theme
 import { AppStyles } from '../styles/AppStyles'; // Import AppStyles
@@ -13,13 +13,38 @@ const ProfileScreen = ({ navigation }: ProfileScreenProps) => {
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
 
   // Placeholder user data
-  const user = {
+  const [userDetails, setUserDetails] = useState({
     name: 'John Doe',
-    age: 30,
+    mobileNumber: '9876543210',
     height: '175 cm',
-    sessionsPending: 5,
-    avatar: require('../images/logo.png'), // Placeholder avatar
-  };
+    weight: '70 kg',
+  });
+
+  const [measurements, setMeasurements] = useState({
+    chest: '95 cm',
+    upperWaist: '80 cm',
+    midWaist: '78 cm',
+    lowerWaist: '82 cm',
+    rightThigh: '55 cm',
+    leftThigh: '55 cm',
+    rightArm: '30 cm',
+    leftArm: '30 cm',
+  });
+
+  const [bca, setBca] = useState({
+    weight: '70 kg',
+    bmi: '22.86',
+    bodyFat: '18%',
+    muscleRate: '40%',
+    subcutaneousFat: '15%',
+    visceralFat: '8',
+    bodyAge: '28',
+    bmr: '1600 kcal',
+    skeletalMass: '25 kg',
+    muscleMass: '28 kg',
+    boneMass: '3 kg',
+    protein: '18%',
+  });
 
   const handleLogout = () => {
     setShowLogoutConfirm(true);
@@ -38,48 +63,73 @@ const ProfileScreen = ({ navigation }: ProfileScreenProps) => {
     setShowLogoutConfirm(false);
   };
 
+  const renderDetailRow = (label: string, value: string, iconName: string) => (
+    <View style={AppStyles.detailRow}>
+      <Icon name={iconName} size={20} color={colors.lightGray} style={AppStyles.detailIcon} />
+      <Text style={AppStyles.profileDetailText}>{label}: <Text style={AppStyles.profileDetailBold}>{value}</Text></Text>
+    </View>
+  );
+
+  const renderEditableDetailRow = (label: string, value: string, onChangeText: (text: string) => void) => (
+    <View style={AppStyles.detailRow}>
+      <Text style={AppStyles.profileDetailText}>{label}: </Text>
+      <TextInput
+        style={AppStyles.profileInput}
+        value={value}
+        onChangeText={onChangeText}
+        placeholderTextColor={colors.mediumGray}
+      />
+    </View>
+  );
+
   return (
-    <View style={AppStyles.profileContainer}>
+    <ScrollView style={AppStyles.profileContainer}>
       <Text style={AppStyles.sectionTitle}>PROFILE</Text>
       <View style={AppStyles.profileHeader}>
-        <Image source={user.avatar} style={AppStyles.profileAvatar} />
-        <Text style={AppStyles.profileName}>{user.name}</Text>
-        <Text style={AppStyles.profileAge}>{user.age} years old</Text>
+        <Image source={require('../images/logo.png')} style={AppStyles.profileAvatar} />
+        <Text style={AppStyles.profileName}>{userDetails.name}</Text>
+        <Text style={AppStyles.profileAge}>User Profile</Text>
       </View>
 
-      <View style={AppStyles.profileDetailsContainer}>
-        <View style={AppStyles.detailRow}>
-          <Icon name="arrows-v" size={20} color={colors.lightGray} style={AppStyles.detailIcon} />
-          <Text style={AppStyles.profileDetailText}>Height: <Text style={AppStyles.profileDetailBold}>{user.height}</Text></Text>
-        </View>
-        <View style={AppStyles.detailRow}>
-          <Icon name="calendar-check-o" size={20} color={colors.lightGray} style={AppStyles.detailIcon} />
-          <Text style={AppStyles.profileDetailText}>Sessions Pending: <Text style={AppStyles.profileDetailBold}>{user.sessionsPending}</Text></Text>
-        </View>
+      {/* User Details Section */}
+      <View style={AppStyles.profileSection}>
+        <Text style={AppStyles.profileSectionTitle}>User Details</Text>
+        {renderEditableDetailRow('Name', userDetails.name, (text) => setUserDetails({ ...userDetails, name: text }))}
+        {renderEditableDetailRow('Mobile Number', userDetails.mobileNumber, (text) => setUserDetails({ ...userDetails, mobileNumber: text }))}
+        {renderEditableDetailRow('Height', userDetails.height, (text) => setUserDetails({ ...userDetails, height: text }))}
+        {renderEditableDetailRow('Weight', userDetails.weight, (text) => setUserDetails({ ...userDetails, weight: text }))}
       </View>
 
-      <Modal
-        visible={showLogoutConfirm}
-        transparent={true}
-        animationType="fade"
-      >
-        <View style={AppStyles.modalContainer}>
-          <View style={AppStyles.modalContent}>
-            <Text style={{ fontSize: 60, color: '#ff0000' }}>✓</Text>
-            <Text style={AppStyles.modalTitle}>Confirm Logout</Text>
-            <Text style={AppStyles.modalText}>Are you sure you want to log out?</Text>
-            <View style={AppStyles.modalButtonContainer}>
-              <TouchableOpacity style={[AppStyles.modalButton, AppStyles.modalButtonCancel]} onPress={cancelLogout}>
-                <Text style={AppStyles.modalButtonText}>Cancel</Text>
-              </TouchableOpacity>
-              <TouchableOpacity style={[AppStyles.modalButton, AppStyles.modalButtonConfirm]} onPress={confirmLogout}>
-                <Text style={AppStyles.modalButtonText}>Logout</Text>
-              </TouchableOpacity>
-            </View>
-          </View>
-        </View>
-      </Modal>
-    </View >
+      {/* Measurements Section */}
+      <View style={AppStyles.profileSection}>
+        <Text style={AppStyles.profileSectionTitle}>Measurements</Text>
+        {renderEditableDetailRow('Chest', measurements.chest, (text) => setMeasurements({ ...measurements, chest: text }))}
+        {renderEditableDetailRow('Upper Waist', measurements.upperWaist, (text) => setMeasurements({ ...measurements, upperWaist: text }))}
+        {renderEditableDetailRow('Mid Waist', measurements.midWaist, (text) => setMeasurements({ ...measurements, midWaist: text }))}
+        {renderEditableDetailRow('Lower Waist', measurements.lowerWaist, (text) => setMeasurements({ ...measurements, lowerWaist: text }))}
+        {renderEditableDetailRow('Right Thigh', measurements.rightThigh, (text) => setMeasurements({ ...measurements, rightThigh: text }))}
+        {renderEditableDetailRow('Left Thigh', measurements.leftThigh, (text) => setMeasurements({ ...measurements, leftThigh: text }))}
+        {renderEditableDetailRow('Right Arm', measurements.rightArm, (text) => setMeasurements({ ...measurements, rightArm: text }))}
+        {renderEditableDetailRow('Left Arm', measurements.leftArm, (text) => setMeasurements({ ...measurements, leftArm: text }))}
+      </View>
+
+      {/* Body Composition Analysis (BCA) Section */}
+      <View style={AppStyles.profileSection}>
+        <Text style={AppStyles.profileSectionTitle}>Body Composition Analysis (BCA)</Text>
+        {renderDetailRow('Weight', bca.weight, 'balance-scale')}
+        {renderDetailRow('BMI', bca.bmi, 'calculator')}
+        {renderDetailRow('Body Fat', bca.bodyFat, 'percent')}
+        {renderDetailRow('Muscle Rate', bca.muscleRate, 'dumbbell')}
+        {renderDetailRow('Subcutaneous Fat', bca.subcutaneousFat, 'tint')}
+        {renderDetailRow('Visceral Fat', bca.visceralFat, 'heartbeat')}
+        {renderDetailRow('Body Age', bca.bodyAge, 'child')}
+        {renderDetailRow('BMR', bca.bmr, 'fire')}
+        {renderDetailRow('Skeletal Mass', bca.skeletalMass, 'bone')}
+        {renderDetailRow('Muscle Mass', bca.muscleMass, 'male')}
+        {renderDetailRow('Bone Mass', bca.boneMass, 'medkit')}
+        {renderDetailRow('Protein', bca.protein, 'flask')}
+      </View>
+    </ScrollView>
   );
 };
 

@@ -782,6 +782,28 @@ export const AppStyles = StyleSheet.create({
   detailIcon: {
     marginRight: 10,
   },
+  profileSection: {
+    backgroundColor: colors.darkGray,
+    borderRadius: 10,
+    padding: 20,
+    marginBottom: 20,
+  },
+  profileSectionTitle: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: colors.lightGray,
+    marginBottom: 15,
+    textAlign: 'center',
+  },
+  profileInput: {
+    flex: 1,
+    fontSize: 16,
+    color: colors.lightGray,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.mediumGray,
+    paddingVertical: 5,
+    marginLeft: 10,
+  },
 
   // Notification Component Styles
   notificationContainer: {

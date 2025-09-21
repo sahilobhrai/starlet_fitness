@@ -12,6 +12,7 @@ interface TrainerDashboardScreenProps {
 }
 
 const TrainerDashboardScreen = ({ navigation }: TrainerDashboardScreenProps) => {
+  const [activeTab, setActiveTab] = useState('dashboard'); // New state for active tab
   const [isMenuVisible, setMenuVisible] = useState(false);
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false); // New state for confirmation modal
 
@@ -25,6 +26,99 @@ const TrainerDashboardScreen = ({ navigation }: TrainerDashboardScreenProps) => 
   const navigateAndCloseMenu = (screenName: string) => {
     navigation.navigate(screenName);
     setMenuVisible(false);
+  };
+
+  const renderContent = () => {
+    switch (activeTab) {
+      case 'dashboard':
+        return (
+          <ScrollView style={AppStyles.profileContainer} contentContainerStyle={AppStyles.profileContentContainer}>
+            <Text style={AppStyles.sectionTitle}>TRAINER DASHBOARD</Text>
+
+            <View style={AppStyles.profileHeader}>
+              <Icon name="user-circle" size={80} color={colors.primary} />
+              <Text style={AppStyles.profileName}>{trainer.name}</Text>
+              <Text style={AppStyles.profileAge}>{trainer.specialty}</Text>
+            </View>
+
+            <View style={AppStyles.profileDetailsContainer}>
+              <View style={AppStyles.detailRow}>
+                <Icon name="users" size={20} color={colors.lightGray} style={AppStyles.detailIcon} />
+                <Text style={AppStyles.profileDetailText}>Clients: <Text style={AppStyles.profileDetailBold}>{trainer.clients}</Text></Text>
+              </View>
+              <View style={AppStyles.detailRow}>
+                <Icon name="calendar" size={20} color={colors.lightGray} style={AppStyles.detailIcon} />
+                <Text style={AppStyles.profileDetailText}>Upcoming Sessions: <Text style={AppStyles.profileDetailBold}>{trainer.upcomingSessions}</Text></Text>
+              </View>
+            </View>
+
+            <View style={styles.cardContainer}>
+              <TouchableOpacity style={styles.card} onPress={() => navigation.navigate('AssignedSessions')}>
+                <Icon name="tasks" size={30} color={colors.primary} />
+                <Text style={styles.cardText}>Assigned Sessions</Text>
+              </TouchableOpacity>
+              <TouchableOpacity style={styles.card} onPress={() => navigation.navigate('UpcomingBookings')}>
+                <Icon name="calendar-check-o" size={30} color={colors.primary} />
+                <Text style={styles.cardText}>Upcoming Bookings & Customers</Text>
+              </TouchableOpacity>
+            </View>
+          </ScrollView>
+        );
+      case 'bookings':
+        return <Text>Bookings Content</Text>; // Placeholder for Bookings
+      case 'history':
+        return <Text>History Content</Text>; // Placeholder for History
+      case 'earnings':
+        return (
+          <ScrollView style={AppStyles.profileContainer} contentContainerStyle={AppStyles.profileContentContainer}>
+            <Text style={AppStyles.sectionTitle}>EARNINGS & PAYOUTS</Text>
+            <View style={AppStyles.profileDetailsContainer}>
+              <View style={AppStyles.detailRow}>
+                <Icon name="money" size={20} color={colors.lightGray} style={AppStyles.detailIcon} />
+                <Text style={AppStyles.profileDetailText}>Track earnings per session</Text>
+              </View>
+              <View style={AppStyles.detailRow}>
+                <Icon name="line-chart" size={20} color={colors.lightGray} style={AppStyles.detailIcon} />
+                <Text style={AppStyles.profileDetailText}>Monthly/weekly revenue breakdown</Text>
+              </View>
+            </View>
+          </ScrollView>
+        );
+      default:
+        return (
+          <ScrollView style={AppStyles.profileContainer} contentContainerStyle={AppStyles.profileContentContainer}>
+            <Text style={AppStyles.sectionTitle}>TRAINER DASHBOARD</Text>
+
+            <View style={AppStyles.profileHeader}>
+              <Icon name="user-circle" size={80} color={colors.primary} />
+              <Text style={AppStyles.profileName}>{trainer.name}</Text>
+              <Text style={AppStyles.profileAge}>{trainer.specialty}</Text>
+            </View>
+
+            <View style={AppStyles.profileDetailsContainer}>
+              <View style={AppStyles.detailRow}>
+                <Icon name="users" size={20} color={colors.lightGray} style={AppStyles.detailIcon} />
+                <Text style={AppStyles.profileDetailText}>Clients: <Text style={AppStyles.profileDetailBold}>{trainer.clients}</Text></Text>
+              </View>
+              <View style={AppStyles.detailRow}>
+                <Icon name="calendar" size={20} color={colors.lightGray} style={AppStyles.detailIcon} />
+                <Text style={AppStyles.profileDetailText}>Upcoming Sessions: <Text style={AppStyles.profileDetailBold}>{trainer.upcomingSessions}</Text></Text>
+              </View>
+            </View>
+
+            <View style={styles.cardContainer}>
+              <TouchableOpacity style={styles.card} onPress={() => navigation.navigate('AssignedSessions')}>
+                <Icon name="tasks" size={30} color={colors.primary} />
+                <Text style={styles.cardText}>Assigned Sessions</Text>
+              </TouchableOpacity>
+              <TouchableOpacity style={styles.card} onPress={() => navigation.navigate('UpcomingBookings')}>
+                <Icon name="calendar-check-o" size={30} color={colors.primary} />
+                <Text style={styles.cardText}>Upcoming Bookings & Customers</Text>
+              </TouchableOpacity>
+            </View>
+          </ScrollView>
+        );
+    }
   };
 
   const confirmLogout = async () => {
@@ -63,37 +157,52 @@ const TrainerDashboardScreen = ({ navigation }: TrainerDashboardScreenProps) => 
         </View>
       </View>
 
-      <ScrollView style={AppStyles.profileContainer} contentContainerStyle={AppStyles.profileContentContainer}>
-        <Text style={AppStyles.sectionTitle}>TRAINER DASHBOARD</Text>
+      <View style={AppStyles.mainContent}>
+        {renderContent()}
+      </View>
 
-        <View style={AppStyles.profileHeader}>
-          <Icon name="user-circle" size={80} color={colors.primary} />
-          <Text style={AppStyles.profileName}>{trainer.name}</Text>
-          <Text style={AppStyles.profileAge}>{trainer.specialty}</Text>
-        </View>
+      {/* Bottom Navigation */}
+      <View style={AppStyles.bottomNav}>
+        <TouchableOpacity
+          style={AppStyles.bottomNavButton}
+          onPress={() => setActiveTab('dashboard')}
+        >
+          <Icon name="home" size={24} color={activeTab === 'dashboard' ? '#ff0000' : '#888'} />
+          <Text style={[AppStyles.bottomNavText, activeTab === 'dashboard' && AppStyles.bottomNavTextActive]}>
+            Dashboard
+          </Text>
+        </TouchableOpacity>
 
-        <View style={AppStyles.profileDetailsContainer}>
-          <View style={AppStyles.detailRow}>
-            <Icon name="users" size={20} color={colors.lightGray} style={AppStyles.detailIcon} />
-            <Text style={AppStyles.profileDetailText}>Clients: <Text style={AppStyles.profileDetailBold}>{trainer.clients}</Text></Text>
-          </View>
-          <View style={AppStyles.detailRow}>
-            <Icon name="calendar" size={20} color={colors.lightGray} style={AppStyles.detailIcon} />
-            <Text style={AppStyles.profileDetailText}>Upcoming Sessions: <Text style={AppStyles.profileDetailBold}>{trainer.upcomingSessions}</Text></Text>
-          </View>
-        </View>
+        <TouchableOpacity
+          style={AppStyles.bottomNavButton}
+          onPress={() => setActiveTab('bookings')}
+        >
+          <Icon name="calendar-check-o" size={24} color={activeTab === 'bookings' ? '#ff0000' : '#888'} />
+          <Text style={[AppStyles.bottomNavText, activeTab === 'bookings' && AppStyles.bottomNavTextActive]}>
+            Bookings
+          </Text>
+        </TouchableOpacity>
 
-        <View style={styles.cardContainer}>
-          <TouchableOpacity style={styles.card} onPress={() => navigation.navigate('AssignedSessions')}>
-            <Icon name="tasks" size={30} color={colors.primary} />
-            <Text style={styles.cardText}>Assigned Sessions</Text>
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.card} onPress={() => navigation.navigate('UpcomingBookings')}>
-            <Icon name="calendar-check-o" size={30} color={colors.primary} />
-            <Text style={styles.cardText}>Upcoming Bookings & Customers</Text>
-          </TouchableOpacity>
-        </View>
-      </ScrollView>
+        <TouchableOpacity
+          style={AppStyles.bottomNavButton}
+          onPress={() => setActiveTab('history')}
+        >
+          <Icon name="history" size={24} color={activeTab === 'history' ? '#ff0000' : '#888'} />
+          <Text style={[AppStyles.bottomNavText, activeTab === 'history' && AppStyles.bottomNavTextActive]}>
+            History
+          </Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          style={AppStyles.bottomNavButton}
+          onPress={() => setActiveTab('earnings')}
+        >
+          <Icon name="money" size={24} color={activeTab === 'earnings' ? '#ff0000' : '#888'} />
+          <Text style={[AppStyles.bottomNavText, activeTab === 'earnings' && AppStyles.bottomNavTextActive]}>
+            Earnings
+          </Text>
+        </TouchableOpacity>
+      </View>
 
       {/* Hamburger Menu Modal */}
       <Modal
@@ -129,13 +238,6 @@ const TrainerDashboardScreen = ({ navigation }: TrainerDashboardScreenProps) => 
             >
               <Icon name="question-circle" size={20} color={colors.lightGray} style={AppStyles.menuIcon} />
               <Text style={AppStyles.menuItemText}>Help</Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={AppStyles.menuItem}
-              onPress={() => navigateAndCloseMenu('SessionHistory')}
-            >
-              <Icon name="history" size={20} color={colors.lightGray} style={AppStyles.menuIcon} />
-              <Text style={AppStyles.menuItemText}>Session History</Text>
             </TouchableOpacity>
             <TouchableOpacity
               style={AppStyles.menuItem}
