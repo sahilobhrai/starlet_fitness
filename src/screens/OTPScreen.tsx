@@ -52,7 +52,7 @@ const OTPScreen = ({ navigation }: OTPScreenProps) => {
 
   const handleVerify = async () => { // Made function async
     const enteredOtp = otp.join('');
-    const correctOtp = '1234'; // Hardcoded OTP
+    const correctOtp = '1234'; // Hardcoded OTP for all roles for now
 
     if (enteredOtp === correctOtp) {
       setNotification({ message: 'OTP Verified! Redirecting to dashboard...', type: 'success', isVisible: true });
@@ -64,8 +64,31 @@ const OTPScreen = ({ navigation }: OTPScreenProps) => {
         setNotification({ message: 'Error saving login status.', type: 'error', isVisible: true });
         return; // Stop execution if saving fails
       }
+
+      let destinationScreen = 'MainApp'; // Default for user
+      let userRole = 'user'; // Default role
+
+      // Simulate user type based on mobile number for demonstration
+      if (mobile === '2222222222') {
+        destinationScreen = 'TrainerDashboard';
+        userRole = 'trainer';
+      } else if (mobile === '3333333333') {
+        destinationScreen = 'OwnerDashboard';
+        userRole = 'owner';
+      }
+      // For any other mobile number, it will default to 'MainApp' (user)
+
+      // Store the user role in AsyncStorage
+      try {
+        await AsyncStorage.setItem('userRole', userRole);
+      } catch (error) {
+        console.error('Error saving user role to AsyncStorage', error);
+        setNotification({ message: 'Error saving user role.', type: 'error', isVisible: true });
+        return;
+      }
+
       setTimeout(() => {
-        navigation.replace('MainApp'); // Navigate to MainApp on successful verification
+        navigation.replace(destinationScreen); // Navigate to respective screen
       }, 1000);
     } else {
       setNotification({ message: 'Incorrect OTP. Please try again.', type: 'error', isVisible: true });

@@ -8,4 +8,6 @@ export const colors = {
   red: '#B22222', // FireBrick - darker, less saturated red
   lightGreen: '#8FBC8F', // DarkSeaGreen - softer, muted green
   bottleGreen: '#556B2F', // DarkOliveGreen - deeper, more muted green
+  white: '#FFFFFF',
+  text: '#333333',
 };

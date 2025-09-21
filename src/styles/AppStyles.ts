@@ -716,6 +716,8 @@ export const AppStyles = StyleSheet.create({
     flex: 1,
     backgroundColor: colors.black,
     padding: 20,
+  },
+  profileContentContainer: {
     alignItems: 'center',
   },
   profileDetailsContainer: {

@@ -1,7 +1,9 @@
-import React, { useState, useEffect } from 'react'; // Added useState, useEffect
+import React, { useState, useEffect, useRef } from 'react'; // Added useState, useEffect, useRef
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import AsyncStorage from '@react-native-async-storage/async-storage'; // Import AsyncStorage
+import { Animated } from 'react-native'; // Import Animated
+import { colors } from '../theme/colors'; // Import colors
 
 // Import all screens
 import SplashScreen from '../screens/SplashScreen';
@@ -15,24 +17,50 @@ import NotificationsScreen from '../screens/NotificationsScreen';
 import LocateUsScreen from '../screens/LocateUsScreen';
 import PrivacyPolicyScreen from '../screens/PrivacyPolicyScreen';
 import TermsOfServiceScreen from '../screens/TermsOfServiceScreen';
+import TrainerDashboardScreen from '../screens/TrainerDashboardScreen';
+import AssignedSessionsScreen from '../screens/AssignedSessionsScreen';
+import UpcomingBookingsScreen from '../screens/UpcomingBookingsScreen';
+import OwnerDashboardScreen from '../screens/OwnerDashboardScreen';
+import SessionHistoryScreen from '../screens/SessionHistoryScreen'; // Import SessionHistoryScreen
 
 const Stack = createNativeStackNavigator();
 
 const AppNavigator = () => {
   const [isLoading, setIsLoading] = useState(true); // State to manage loading
-  const [isAuthenticated, setIsAuthenticated] = useState(false); // State to manage authentication status
+  const [initialRoute, setInitialRoute] = useState('Splash'); // State to manage initial route
+  const fadeAnim = useRef(new Animated.Value(1)).current; // Initial opacity 1
 
   useEffect(() => {
     const checkLoginStatus = async () => {
       try {
-        const userToken = await AsyncStorage.getItem('userToken'); // Assuming 'userToken' is stored on login
+        const userToken = await AsyncStorage.getItem('userToken');
+        const userRole = await AsyncStorage.getItem('userRole'); // Retrieve user role
+
         if (userToken) {
-          setIsAuthenticated(true);
+          // User is authenticated, determine initial route based on role
+          if (userRole === 'trainer') {
+            setInitialRoute('TrainerDashboard');
+          } else if (userRole === 'owner') {
+            setInitialRoute('OwnerDashboard');
+          } else {
+            // Default to MainApp for regular users or if role is not specified
+            setInitialRoute('MainApp');
+          }
+        } else {
+          // Not authenticated, go to Intro screen
+          setInitialRoute('Intro');
         }
       } catch (error) {
-        console.error('Error reading token from AsyncStorage', error);
+        console.error('Error reading token or role from AsyncStorage', error);
+        setInitialRoute('Intro'); // Fallback to Intro on error
       } finally {
-        setIsLoading(false); // Set loading to false once check is complete
+        // Start fade out animation after 1.5 seconds, then set isLoading to false
+        Animated.timing(fadeAnim, {
+          toValue: 0,
+          duration: 500, // Fade out duration
+          delay: 1500, // Start fade out after 1.5 seconds (total 2 seconds splash)
+          useNativeDriver: true,
+        }).start(() => setIsLoading(false));
       }
     };
 
@@ -40,14 +68,18 @@ const AppNavigator = () => {
   }, []);
 
   if (isLoading) {
-    // Optionally render a loading screen or null while checking auth status
-    return null; // Or a custom loading component
+    // Render SplashScreen with fade out animation
+    return (
+      <Animated.View style={{ flex: 1, opacity: fadeAnim, backgroundColor: colors.black }}>
+        <SplashScreen />
+      </Animated.View>
+    );
   }
 
   return (
     <NavigationContainer>
       <Stack.Navigator
-        initialRouteName={isAuthenticated ? 'MainApp' : 'Splash'} // Conditionally set initial route
+        initialRouteName={initialRoute} // Set initial route based on state
         screenOptions={{ headerShown: false }}
       >
         <Stack.Screen name="Splash" component={SplashScreen} />
@@ -61,6 +93,11 @@ const AppNavigator = () => {
         <Stack.Screen name="LocateUs" component={LocateUsScreen} />
         <Stack.Screen name="PrivacyPolicy" component={PrivacyPolicyScreen} />
         <Stack.Screen name="TermsOfService" component={TermsOfServiceScreen} />
+        <Stack.Screen name="TrainerDashboard" component={TrainerDashboardScreen} />
+        <Stack.Screen name="AssignedSessions" component={AssignedSessionsScreen} />
+        <Stack.Screen name="UpcomingBookings" component={UpcomingBookingsScreen} />
+        <Stack.Screen name="OwnerDashboard" component={OwnerDashboardScreen} />
+        <Stack.Screen name="SessionHistory" component={SessionHistoryScreen} />
       </Stack.Navigator>
     </NavigationContainer>
   );

@@ -1,36 +1,25 @@
 import React, { useState } from 'react';
-import { View, Text, TouchableOpacity, SafeAreaView, StatusBar, Dimensions, Modal, Image } from 'react-native'; // Removed BackHandler
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, SafeAreaView, StatusBar, Dimensions, Modal, Image } from 'react-native'; // Removed BackHandler
 import Icon from 'react-native-vector-icons/FontAwesome';
-import { colors } from '../theme/colors'; // Assuming colors.ts is in src/theme
-import { AppStyles } from '../styles/AppStyles'; // Import AppStyles
+import { colors } from '../theme/colors';
+import { AppStyles } from '../styles/AppStyles';
 import AsyncStorage from '@react-native-async-storage/async-storage'; // Import AsyncStorage
-
-// Import the individual screen components
-import BookSession from './BookSession';
-import ChatbotAssistant from './ChatbotAssistant';
-import NutritionScreen from './NutritionScreen';
-import CommunityScreen from './CommunityScreen';
 
 const { width } = Dimensions.get('window');
 
-function MainAppContent({ navigation }: { navigation: any }) {
-  const [activeTab, setActiveTab] = useState('book');
+interface OwnerDashboardScreenProps {
+  navigation: any;
+}
+
+const OwnerDashboardScreen = ({ navigation }: OwnerDashboardScreenProps) => {
   const [isMenuVisible, setMenuVisible] = useState(false);
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false); // New state for confirmation modal
 
-  const renderContent = () => {
-    switch (activeTab) {
-      case 'book':
-        return <BookSession />;
-      case 'chatbot':
-        return <ChatbotAssistant navigation={navigation} setActiveTab={setActiveTab} />;
-      case 'nutrition':
-        return <NutritionScreen />;
-      case 'community':
-        return <CommunityScreen />;
-      default:
-        return <BookSession />;
-    }
+  const ownerStats = {
+    totalTrainers: 5,
+    totalClients: 150,
+    revenueThisMonth: '₹50,000',
+    pendingApprovals: 3,
   };
 
   const navigateAndCloseMenu = (screenName: string) => {
@@ -74,42 +63,49 @@ function MainAppContent({ navigation }: { navigation: any }) {
         </View>
       </View>
 
-      <View style={AppStyles.mainContent}>
-        {renderContent()}
-      </View>
+      <ScrollView style={AppStyles.profileContainer} contentContainerStyle={AppStyles.profileContentContainer}>
+        <Text style={AppStyles.sectionTitle}>OWNER DASHBOARD</Text>
 
-      {/* Bottom Navigation */}
-      <View style={AppStyles.bottomNav}>
-        <TouchableOpacity
-          style={AppStyles.bottomNavButton}
-          onPress={() => setActiveTab('book')}
-        >
-          <Icon name="home" size={24} color={activeTab === 'book' ? '#ff0000' : '#888'} />
-          <Text style={[AppStyles.bottomNavText, activeTab === 'book' && AppStyles.bottomNavTextActive]}>
-            Home
-          </Text>
-        </TouchableOpacity>
+        <View style={AppStyles.profileHeader}>
+          <Icon name="building" size={80} color={colors.primary} />
+          <Text style={AppStyles.profileName}>Starlet Fitness Admin</Text>
+          <Text style={AppStyles.profileAge}>Owner Panel</Text>
+        </View>
 
-        <TouchableOpacity
-          style={AppStyles.bottomNavButton}
-          onPress={() => setActiveTab('chatbot')}
-        >
-          <Icon name="comments" size={24} color={activeTab === 'chatbot' ? '#ff0000' : '#888'} />
-          <Text style={[AppStyles.bottomNavText, activeTab === 'chatbot' && AppStyles.bottomNavTextActive]}>
-            Assistant
-          </Text>
-        </TouchableOpacity>
+        <View style={AppStyles.profileDetailsContainer}>
+          <View style={AppStyles.detailRow}>
+            <Icon name="users" size={20} color={colors.lightGray} style={AppStyles.detailIcon} />
+            <Text style={AppStyles.profileDetailText}>Total Trainers: <Text style={AppStyles.profileDetailBold}>{ownerStats.totalTrainers}</Text></Text>
+          </View>
+          <View style={AppStyles.detailRow}>
+            <Icon name="user-circle-o" size={20} color={colors.lightGray} style={AppStyles.detailIcon} />
+            <Text style={AppStyles.profileDetailText}>Total Clients: <Text style={AppStyles.profileDetailBold}>{ownerStats.totalClients}</Text></Text>
+          </View>
+          <View style={AppStyles.detailRow}>
+            <Icon name="money" size={20} color={colors.lightGray} style={AppStyles.detailIcon} />
+            <Text style={AppStyles.profileDetailText}>Revenue (This Month): <Text style={AppStyles.profileDetailBold}>{ownerStats.revenueThisMonth}</Text></Text>
+          </View>
+          <View style={AppStyles.detailRow}>
+            <Icon name="hourglass-half" size={20} color={colors.lightGray} style={AppStyles.detailIcon} />
+            <Text style={AppStyles.profileDetailText}>Pending Approvals: <Text style={AppStyles.profileDetailBold}>{ownerStats.pendingApprovals}</Text></Text>
+          </View>
+        </View>
 
-        <TouchableOpacity
-          style={AppStyles.bottomNavButton}
-          onPress={() => setActiveTab('community')}
-        >
-          <Icon name="group" size={24} color={activeTab === 'community' ? '#ff0000' : '#888'} />
-          <Text style={[AppStyles.bottomNavText, activeTab === 'community' && AppStyles.bottomNavTextActive]}>
-            Community
-          </Text>
-        </TouchableOpacity>
-      </View>
+        <View style={styles.cardContainer}>
+          <TouchableOpacity style={styles.card} onPress={() => console.log('Manage Trainers')}>
+            <Icon name="user-plus" size={30} color={colors.primary} />
+            <Text style={styles.cardText}>Manage Trainers</Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.card} onPress={() => console.log('View Reports')}>
+            <Icon name="bar-chart" size={30} color={colors.primary} />
+            <Text style={styles.cardText}>View Reports</Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.card} onPress={() => console.log('System Settings')}>
+            <Icon name="cogs" size={30} color={colors.primary} />
+            <Text style={styles.cardText}>System Settings</Text>
+          </TouchableOpacity>
+        </View>
+      </ScrollView>
 
       {/* Hamburger Menu Modal */}
       <Modal
@@ -145,6 +141,13 @@ function MainAppContent({ navigation }: { navigation: any }) {
             >
               <Icon name="question-circle" size={20} color={colors.lightGray} style={AppStyles.menuIcon} />
               <Text style={AppStyles.menuItemText}>Help</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={AppStyles.menuItem}
+              onPress={() => navigateAndCloseMenu('SessionHistory')}
+            >
+              <Icon name="history" size={20} color={colors.lightGray} style={AppStyles.menuIcon} />
+              <Text style={AppStyles.menuItemText}>Session History</Text>
             </TouchableOpacity>
             <TouchableOpacity
               style={AppStyles.menuItem}
@@ -192,6 +195,36 @@ function MainAppContent({ navigation }: { navigation: any }) {
       </Modal>
     </SafeAreaView>
   );
-}
+};
 
-export default MainAppContent;
+const styles = StyleSheet.create({
+  cardContainer: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'space-around',
+    marginTop: 20,
+  },
+  card: {
+    backgroundColor: colors.white,
+    borderRadius: 10,
+    padding: 20,
+    alignItems: 'center',
+    justifyContent: 'center',
+    width: '45%',
+    marginBottom: 20,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+  cardText: {
+    marginTop: 10,
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: colors.text,
+    textAlign: 'center',
+  },
+});
+
+export default OwnerDashboardScreen;
