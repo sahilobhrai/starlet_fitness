@@ -22,6 +22,7 @@ import AssignedSessionsScreen from '../screens/AssignedSessionsScreen';
 import UpcomingBookingsScreen from '../screens/UpcomingBookingsScreen';
 import OwnerDashboardScreen from '../screens/OwnerDashboardScreen';
 import SessionHistoryScreen from '../screens/SessionHistoryScreen'; // Import SessionHistoryScreen
+import EarningsAndPayoutsScreen from '../screens/EarningsAndPayoutsScreen'; // Import EarningsAndPayoutsScreen
 
 const Stack = createNativeStackNavigator();
 
@@ -98,6 +99,7 @@ const AppNavigator = () => {
         <Stack.Screen name="UpcomingBookings" component={UpcomingBookingsScreen} />
         <Stack.Screen name="OwnerDashboard" component={OwnerDashboardScreen} />
         <Stack.Screen name="SessionHistory" component={SessionHistoryScreen} />
+        <Stack.Screen name="EarningsAndPayouts" component={EarningsAndPayoutsScreen} />
       </Stack.Navigator>
     </NavigationContainer>
   );

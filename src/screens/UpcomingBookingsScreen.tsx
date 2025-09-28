@@ -20,17 +20,27 @@ const UpcomingBookingsScreen = ({ navigation }: UpcomingBookingsScreenProps) => 
     Linking.openURL(phoneNumber).catch(err => console.error('Failed to open dialer:', err));
   };
 
-  
+  const handleEndSession = (bookingId: string) => {
+    console.log(`Ending session for booking ID: ${bookingId}`);
+    // Implement actual session ending logic here, e.g., API call, navigation
+  };
 
   const renderBookingItem = ({ item }: { item: any }) => (
     <View style={styles.bookingCard}>
       <View style={styles.bookingInfo}>
         <Text style={styles.customerName}>{item.customerName}</Text>
-        <Text style={styles.bookingDetails}>{item.sessionType} - {item.sessionDate} at {item.sessionTime}</Text>
+        <Text style={styles.bookingDetails}>{item.sessionDate} at {item.sessionTime}</Text>
       </View>
-      <TouchableOpacity style={styles.contactButton} onPress={() => handleCall(item.phoneNumber)}>
-        <Icon name="phone" size={20} color={colors.white} />
-      </TouchableOpacity>
+      <View style={styles.buttonContainer}>
+        <TouchableOpacity style={styles.contactButton} onPress={() => handleCall(item.phoneNumber)}>
+          <Icon name="phone" size={20} color={colors.white} />
+          <Text style={styles.buttonText}>Call</Text>
+        </TouchableOpacity>
+        <TouchableOpacity style={styles.contactButton} onPress={() => handleEndSession(item.id)}>
+          <Icon name="check-circle" size={20} color={colors.white} />
+          <Text style={styles.buttonText}>End</Text>
+        </TouchableOpacity>
+      </View>
     </View>
   );
 
@@ -90,7 +100,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     backgroundColor: colors.white,
     borderRadius: 10,
-    padding: 15,
+    padding: 10, // Reduced padding
     marginBottom: 10,
     alignItems: 'center',
     justifyContent: 'space-between',
@@ -109,14 +119,28 @@ const styles = StyleSheet.create({
     color: colors.text,
   },
   bookingDetails: {
-    fontSize: 14,
+    fontSize: 12,
     color: colors.mediumGray,
     marginTop: 5,
   },
+  buttonContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10, // Space between buttons
+  },
   contactButton: {
     backgroundColor: colors.lightGreen,
-    padding: 10,
+    padding: 8, // Reduced padding
     borderRadius: 5,
+    alignItems: 'center', // Center content horizontally
+    justifyContent: 'center', // Center content vertically
+    width: 70, // Fixed width for buttons
+    height: 55, // Reduced height for buttons
+  },
+  buttonText: {
+    color: colors.white,
+    fontSize: 12,
+    marginTop: 3, // Reduced space between icon and text
   },
 });
 

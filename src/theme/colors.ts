@@ -10,4 +10,7 @@ export const colors = {
   bottleGreen: '#556B2F', // DarkOliveGreen - deeper, more muted green
   white: '#FFFFFF',
   text: '#333333',
+  background: '#F5F5F5', // A very light gray for the overall screen background
+  cardBackground: '#FFFFFF', // White for card-like elements
+  borderColor: '#E0E0E0', // A light gray for borders
 };

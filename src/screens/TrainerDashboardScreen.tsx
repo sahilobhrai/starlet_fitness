@@ -6,6 +6,7 @@ import { AppStyles } from '../styles/AppStyles';
 import AsyncStorage from '@react-native-async-storage/async-storage'; // Import AsyncStorage
 import UpcomingBookingsScreen from './UpcomingBookingsScreen'; // Import UpcomingBookingsScreen
 import SessionHistoryScreen from './SessionHistoryScreen'; // Import SessionHistoryScreen
+import EarningsAndPayoutsScreen from './EarningsAndPayoutsScreen'; // Import EarningsAndPayoutsScreen
 
 const { width } = Dimensions.get('window');
 
@@ -60,21 +61,7 @@ const TrainerDashboardScreen = ({ navigation }: TrainerDashboardScreenProps) => 
       case 'history':
         return <SessionHistoryScreen navigation={navigation} />;
       case 'earnings':
-        return (
-          <ScrollView style={AppStyles.profileContainer} contentContainerStyle={AppStyles.profileContentContainer}>
-            <Text style={AppStyles.sectionTitle}>EARNINGS & PAYOUTS</Text>
-            <View style={AppStyles.profileDetailsContainer}>
-              <View style={AppStyles.detailRow}>
-                <Icon name="money" size={20} color={colors.lightGray} style={AppStyles.detailIcon} />
-                <Text style={AppStyles.profileDetailText}>Track earnings per session</Text>
-              </View>
-              <View style={AppStyles.detailRow}>
-                <Icon name="line-chart" size={20} color={colors.lightGray} style={AppStyles.detailIcon} />
-                <Text style={AppStyles.profileDetailText}>Monthly/weekly revenue breakdown</Text>
-              </View>
-            </View>
-          </ScrollView>
-        );
+        return <EarningsAndPayoutsScreen />;
       default:
         return (
           <ScrollView style={AppStyles.profileContainer} contentContainerStyle={AppStyles.profileContentContainer}>
