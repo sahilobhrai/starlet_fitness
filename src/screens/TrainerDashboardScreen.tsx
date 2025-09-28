@@ -4,6 +4,8 @@ import Icon from 'react-native-vector-icons/FontAwesome';
 import { colors } from '../theme/colors';
 import { AppStyles } from '../styles/AppStyles';
 import AsyncStorage from '@react-native-async-storage/async-storage'; // Import AsyncStorage
+import UpcomingBookingsScreen from './UpcomingBookingsScreen'; // Import UpcomingBookingsScreen
+import SessionHistoryScreen from './SessionHistoryScreen'; // Import SessionHistoryScreen
 
 const { width } = Dimensions.get('window');
 
@@ -51,23 +53,12 @@ const TrainerDashboardScreen = ({ navigation }: TrainerDashboardScreenProps) => 
                 <Text style={AppStyles.profileDetailText}>Upcoming Sessions: <Text style={AppStyles.profileDetailBold}>{trainer.upcomingSessions}</Text></Text>
               </View>
             </View>
-
-            <View style={styles.cardContainer}>
-              <TouchableOpacity style={styles.card} onPress={() => navigation.navigate('AssignedSessions')}>
-                <Icon name="tasks" size={30} color={colors.primary} />
-                <Text style={styles.cardText}>Assigned Sessions</Text>
-              </TouchableOpacity>
-              <TouchableOpacity style={styles.card} onPress={() => navigation.navigate('UpcomingBookings')}>
-                <Icon name="calendar-check-o" size={30} color={colors.primary} />
-                <Text style={styles.cardText}>Upcoming Bookings & Customers</Text>
-              </TouchableOpacity>
-            </View>
           </ScrollView>
         );
       case 'bookings':
-        return <Text>Bookings Content</Text>; // Placeholder for Bookings
+        return <UpcomingBookingsScreen navigation={navigation} />;
       case 'history':
-        return <Text>History Content</Text>; // Placeholder for History
+        return <SessionHistoryScreen navigation={navigation} />;
       case 'earnings':
         return (
           <ScrollView style={AppStyles.profileContainer} contentContainerStyle={AppStyles.profileContentContainer}>
@@ -107,13 +98,9 @@ const TrainerDashboardScreen = ({ navigation }: TrainerDashboardScreenProps) => 
             </View>
 
             <View style={styles.cardContainer}>
-              <TouchableOpacity style={styles.card} onPress={() => navigation.navigate('AssignedSessions')}>
-                <Icon name="tasks" size={30} color={colors.primary} />
-                <Text style={styles.cardText}>Assigned Sessions</Text>
-              </TouchableOpacity>
               <TouchableOpacity style={styles.card} onPress={() => navigation.navigate('UpcomingBookings')}>
                 <Icon name="calendar-check-o" size={30} color={colors.primary} />
-                <Text style={styles.cardText}>Upcoming Bookings & Customers</Text>
+                <Text style={styles.cardText}>Bookings & Sessions</Text>
               </TouchableOpacity>
             </View>
           </ScrollView>
