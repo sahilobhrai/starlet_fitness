@@ -5,6 +5,15 @@ import { colors } from '../theme/colors';
 import { AppStyles } from '../styles/AppStyles';
 import AsyncStorage from '@react-native-async-storage/async-storage'; // Import AsyncStorage
 
+// Import the new screens for admin dashboard
+import DashboardScreen from './DashboardScreen'; // Assuming this is the main dashboard overview
+import ManageBranchesScreen from './ManageBranchesScreen'; // Import ManageBranchesScreen
+import ManageTrainersScreen from './ManageTrainersScreen';
+import ManageCustomersScreen from './ManageCustomersScreen'; // Import ManageCustomersScreen
+import ReportsScreen from './ReportsScreen';
+import InvoicesScreen from './InvoicesScreen'; // Import InvoicesScreen
+import AnnouncementsScreen from './AnnouncementsScreen';
+
 const { width } = Dimensions.get('window');
 
 interface OwnerDashboardScreenProps {
@@ -12,6 +21,7 @@ interface OwnerDashboardScreenProps {
 }
 
 const OwnerDashboardScreen = ({ navigation }: OwnerDashboardScreenProps) => {
+  const [activeTab, setActiveTab] = useState('dashboard'); // State to manage active tab in bottom navigation
   const [isMenuVisible, setMenuVisible] = useState(false);
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false); // New state for confirmation modal
 
@@ -49,6 +59,85 @@ const OwnerDashboardScreen = ({ navigation }: OwnerDashboardScreenProps) => {
     setShowLogoutConfirm(true);
   };
 
+  // Function to render content based on active tab
+  const renderContent = () => {
+    switch (activeTab) {
+      case 'dashboard':
+        // Render the dashboard overview with stats
+        return (
+          <ScrollView style={AppStyles.profileContainer} contentContainerStyle={AppStyles.profileContentContainer}>
+            <Text style={AppStyles.sectionTitle}>OWNER DASHBOARD</Text>
+            <View style={AppStyles.profileHeader}>
+              <Icon name="building" size={80} color={colors.primary} />
+              <Text style={AppStyles.profileName}>Starlet Fitness Admin</Text>
+              <Text style={AppStyles.profileAge}>Owner Panel</Text>
+            </View>
+            <View style={AppStyles.profileDetailsContainer}>
+              <View style={AppStyles.detailRow}>
+                <Icon name="users" size={20} color={colors.lightGray} style={AppStyles.detailIcon} />
+                <Text style={AppStyles.profileDetailText}>Total Trainers: <Text style={AppStyles.profileDetailBold}>{ownerStats.totalTrainers}</Text></Text>
+              </View>
+              <View style={AppStyles.detailRow}>
+                <Icon name="user-circle-o" size={20} color={colors.lightGray} style={AppStyles.detailIcon} />
+                <Text style={AppStyles.profileDetailText}>Total Clients: <Text style={AppStyles.profileDetailBold}>{ownerStats.totalClients}</Text></Text>
+              </View>
+              <View style={AppStyles.detailRow}>
+                <Icon name="money" size={20} color={colors.lightGray} style={AppStyles.detailIcon} />
+                <Text style={AppStyles.profileDetailText}>Revenue (This Month): <Text style={AppStyles.profileDetailBold}>{ownerStats.revenueThisMonth}</Text></Text>
+              </View>
+              <View style={AppStyles.detailRow}>
+                <Icon name="hourglass-half" size={20} color={colors.lightGray} style={AppStyles.detailIcon} />
+                <Text style={AppStyles.profileDetailText}>Pending Approvals: <Text style={AppStyles.profileDetailBold}>{ownerStats.pendingApprovals}</Text></Text>
+              </View>
+            </View>
+            {/* Removed old cards */}
+          </ScrollView>
+        );
+      case 'manageBranches':
+        return <ManageBranchesScreen />; // Render ManageBranchesScreen
+      case 'manageTrainers':
+        return <ManageTrainersScreen />; // Render ManageTrainersScreen
+      case 'manageCustomers':
+        return <ManageCustomersScreen />; // Render ManageCustomersScreen
+      case 'reports':
+        return <ReportsScreen />; // Render ReportsScreen
+      case 'invoices':
+        return <InvoicesScreen />; // Render InvoicesScreen
+      case 'announcements':
+        return <AnnouncementsScreen />; // Render AnnouncementsScreen
+      default:
+        // Fallback to dashboard if an unknown tab is selected
+        return (
+          <ScrollView style={AppStyles.profileContainer} contentContainerStyle={AppStyles.profileContentContainer}>
+            <Text style={AppStyles.sectionTitle}>OWNER DASHBOARD</Text>
+            <View style={AppStyles.profileHeader}>
+              <Icon name="building" size={80} color={colors.primary} />
+              <Text style={AppStyles.profileName}>Starlet Fitness Admin</Text>
+              <Text style={AppStyles.profileAge}>Owner Panel</Text>
+            </View>
+            <View style={AppStyles.profileDetailsContainer}>
+              <View style={AppStyles.detailRow}>
+                <Icon name="users" size={20} color={colors.lightGray} style={AppStyles.detailIcon} />
+                <Text style={AppStyles.profileDetailText}>Total Trainers: <Text style={AppStyles.profileDetailBold}>{ownerStats.totalTrainers}</Text></Text>
+              </View>
+              <View style={AppStyles.detailRow}>
+                <Icon name="user-circle-o" size={20} color={colors.lightGray} style={AppStyles.detailIcon} />
+                <Text style={AppStyles.profileDetailText}>Total Clients: <Text style={AppStyles.profileDetailBold}>{ownerStats.totalClients}</Text></Text>
+              </View>
+              <View style={AppStyles.detailRow}>
+                <Icon name="money" size={20} color={colors.lightGray} style={AppStyles.detailIcon} />
+                <Text style={AppStyles.profileDetailText}>Revenue (This Month): <Text style={AppStyles.profileDetailBold}>{ownerStats.revenueThisMonth}</Text></Text>
+              </View>
+              <View style={AppStyles.detailRow}>
+                <Icon name="hourglass-half" size={20} color={colors.lightGray} style={AppStyles.detailIcon} />
+                <Text style={AppStyles.profileDetailText}>Pending Approvals: <Text style={AppStyles.profileDetailBold}>{ownerStats.pendingApprovals}</Text></Text>
+              </View>
+            </View>
+          </ScrollView>
+        );
+    }
+  };
+
   return (
     <SafeAreaView style={AppStyles.safeArea}>
       <StatusBar backgroundColor="#000" barStyle="light-content" />
@@ -63,51 +152,57 @@ const OwnerDashboardScreen = ({ navigation }: OwnerDashboardScreenProps) => {
         </View>
       </View>
 
-      <ScrollView style={AppStyles.profileContainer} contentContainerStyle={AppStyles.profileContentContainer}>
-        <Text style={AppStyles.sectionTitle}>OWNER DASHBOARD</Text>
+      {/* Main Content Area - Renders based on activeTab */}
+      <View style={AppStyles.mainContent}>
+        {renderContent()}
+      </View>
 
-        <View style={AppStyles.profileHeader}>
-          <Icon name="building" size={80} color={colors.primary} />
-          <Text style={AppStyles.profileName}>Starlet Fitness Admin</Text>
-          <Text style={AppStyles.profileAge}>Owner Panel</Text>
-        </View>
+      {/* Bottom Navigation */}
+      <View style={AppStyles.bottomNav}>
+        <TouchableOpacity
+          style={AppStyles.bottomNavButton}
+          onPress={() => setActiveTab('dashboard')}
+        >
+          <Icon name="home" size={24} color={activeTab === 'dashboard' ? '#ff0000' : '#888'} />
+          <Text style={[AppStyles.bottomNavText, activeTab === 'dashboard' && AppStyles.bottomNavTextActive]}>
+            Dashboard
+          </Text>
+        </TouchableOpacity>
 
-        <View style={AppStyles.profileDetailsContainer}>
-          <View style={AppStyles.detailRow}>
-            <Icon name="users" size={20} color={colors.lightGray} style={AppStyles.detailIcon} />
-            <Text style={AppStyles.profileDetailText}>Total Trainers: <Text style={AppStyles.profileDetailBold}>{ownerStats.totalTrainers}</Text></Text>
-          </View>
-          <View style={AppStyles.detailRow}>
-            <Icon name="user-circle-o" size={20} color={colors.lightGray} style={AppStyles.detailIcon} />
-            <Text style={AppStyles.profileDetailText}>Total Clients: <Text style={AppStyles.profileDetailBold}>{ownerStats.totalClients}</Text></Text>
-          </View>
-          <View style={AppStyles.detailRow}>
-            <Icon name="money" size={20} color={colors.lightGray} style={AppStyles.detailIcon} />
-            <Text style={AppStyles.profileDetailText}>Revenue (This Month): <Text style={AppStyles.profileDetailBold}>{ownerStats.revenueThisMonth}</Text></Text>
-          </View>
-          <View style={AppStyles.detailRow}>
-            <Icon name="hourglass-half" size={20} color={colors.lightGray} style={AppStyles.detailIcon} />
-            <Text style={AppStyles.profileDetailText}>Pending Approvals: <Text style={AppStyles.profileDetailBold}>{ownerStats.pendingApprovals}</Text></Text>
-          </View>
-        </View>
 
-        <View style={styles.cardContainer}>
-          <TouchableOpacity style={styles.card} onPress={() => console.log('Manage Trainers')}>
-            <Icon name="user-plus" size={30} color={colors.primary} />
-            <Text style={styles.cardText}>Manage Trainers</Text>
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.card} onPress={() => console.log('View Reports')}>
-            <Icon name="bar-chart" size={30} color={colors.primary} />
-            <Text style={styles.cardText}>View Reports</Text>
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.card} onPress={() => console.log('System Settings')}>
-            <Icon name="cogs" size={30} color={colors.primary} />
-            <Text style={styles.cardText}>System Settings</Text>
-          </TouchableOpacity>
-        </View>
-      </ScrollView>
 
-      {/* Hamburger Menu Modal */}
+        <TouchableOpacity
+          style={AppStyles.bottomNavButton}
+          onPress={() => setActiveTab('manageTrainers')}
+        >
+          <Icon name="users" size={24} color={activeTab === 'manageTrainers' ? '#ff0000' : '#888'} />
+          <Text style={[AppStyles.bottomNavText, activeTab === 'manageTrainers' && AppStyles.bottomNavTextActive]}>
+            Trainers
+          </Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          style={AppStyles.bottomNavButton}
+          onPress={() => setActiveTab('manageCustomers')}
+        >
+          <Icon name="user-circle-o" size={24} color={activeTab === 'manageCustomers' ? '#ff0000' : '#888'} />
+          <Text style={[AppStyles.bottomNavText, activeTab === 'manageCustomers' && AppStyles.bottomNavTextActive]}>
+            Customers
+          </Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          style={AppStyles.bottomNavButton}
+          onPress={() => setActiveTab('reports')}
+        >
+          <Icon name="bar-chart" size={24} color={activeTab === 'reports' ? '#ff0000' : '#888'} />
+          <Text style={[AppStyles.bottomNavText, activeTab === 'reports' && AppStyles.bottomNavTextActive]}>
+            Reports
+          </Text>
+        </TouchableOpacity>
+      </View>
+
+      {/* Hamburger Menu Modal (remains the same) */}
       <Modal
         animationType="fade"
         transparent={true}
@@ -142,22 +237,32 @@ const OwnerDashboardScreen = ({ navigation }: OwnerDashboardScreenProps) => {
               <Icon name="question-circle" size={20} color={colors.lightGray} style={AppStyles.menuIcon} />
               <Text style={AppStyles.menuItemText}>Help</Text>
             </TouchableOpacity>
+            {/* Add other admin-specific navigation items here if needed */}
             <TouchableOpacity
               style={AppStyles.menuItem}
-              onPress={() => navigateAndCloseMenu('SessionHistory')}
+              onPress={() => navigateAndCloseMenu('ManageBranches')} // Example: Link to ManageBranches
             >
-              <Icon name="history" size={20} color={colors.lightGray} style={AppStyles.menuIcon} />
-              <Text style={AppStyles.menuItemText}>Session History</Text>
+              <Icon name="sitemap" size={20} color={colors.lightGray} style={AppStyles.menuIcon} />
+              <Text style={AppStyles.menuItemText}>Branches</Text>
             </TouchableOpacity>
+
+            <TouchableOpacity
+              style={AppStyles.menuItem}
+              onPress={() => navigateAndCloseMenu('Invoices')} // Example: Link to Invoices
+            >
+              <Icon name="file-text-o" size={20} color={colors.lightGray} style={AppStyles.menuIcon} />
+              <Text style={AppStyles.menuItemText}>Invoices</Text>
+            </TouchableOpacity>
+
             <TouchableOpacity
               style={AppStyles.menuItem}
               onPress={() => {
                 setMenuVisible(false);
-                navigation.navigate('Profile');
+                navigation.navigate('Announcements');
               }}
             >
-              <Icon name="user" size={20} color={colors.lightGray} style={AppStyles.menuIcon} />
-              <Text style={AppStyles.menuItemText}>Profile</Text>
+              <Icon name="bullhorn" size={20} color={colors.lightGray} style={AppStyles.menuIcon} />
+              <Text style={AppStyles.menuItemText}>Announcements</Text>
             </TouchableOpacity>
             {/* Logout Button */}
             <TouchableOpacity
@@ -197,34 +302,9 @@ const OwnerDashboardScreen = ({ navigation }: OwnerDashboardScreenProps) => {
   );
 };
 
+// Styles specific to OwnerDashboardScreen if any, otherwise use AppStyles
 const styles = StyleSheet.create({
-  cardContainer: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    justifyContent: 'space-around',
-    marginTop: 20,
-  },
-  card: {
-    backgroundColor: colors.white,
-    borderRadius: 10,
-    padding: 20,
-    alignItems: 'center',
-    justifyContent: 'center',
-    width: '45%',
-    marginBottom: 20,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
-  },
-  cardText: {
-    marginTop: 10,
-    fontSize: 16,
-    fontWeight: 'bold',
-    color: colors.text,
-    textAlign: 'center',
-  },
+  // Removed old card styles as they are no longer used
 });
 
 export default OwnerDashboardScreen;

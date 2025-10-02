@@ -24,6 +24,16 @@ import OwnerDashboardScreen from '../screens/OwnerDashboardScreen';
 import SessionHistoryScreen from '../screens/SessionHistoryScreen'; // Import SessionHistoryScreen
 import EarningsAndPayoutsScreen from '../screens/EarningsAndPayoutsScreen'; // Import EarningsAndPayoutsScreen
 
+// Import newly created screens
+import DashboardScreen from '../screens/DashboardScreen';
+import ManageBranchesScreen from '../screens/ManageBranchesScreen';
+import ManageTrainersScreen from '../screens/ManageTrainersScreen';
+import ManageCustomersScreen from '../screens/ManageCustomersScreen';
+import ReportsScreen from '../screens/ReportsScreen';
+import InvoicesScreen from '../screens/InvoicesScreen';
+import AnnouncementsScreen from '../screens/AnnouncementsScreen';
+
+
 const Stack = createNativeStackNavigator();
 
 const AppNavigator = () => {
@@ -100,6 +110,16 @@ const AppNavigator = () => {
         <Stack.Screen name="OwnerDashboard" component={OwnerDashboardScreen} />
         <Stack.Screen name="SessionHistory" component={SessionHistoryScreen} />
         <Stack.Screen name="EarningsAndPayouts" component={EarningsAndPayoutsScreen} />
+
+        {/* Add new screens to the navigator */}
+        <Stack.Screen name="Dashboard" component={DashboardScreen} />
+        <Stack.Screen name="ManageBranches" component={ManageBranchesScreen} />
+        <Stack.Screen name="ManageTrainers" component={ManageTrainersScreen} />
+        <Stack.Screen name="ManageCustomers" component={ManageCustomersScreen} />
+        <Stack.Screen name="Reports" component={ReportsScreen} />
+        <Stack.Screen name="Invoices" component={InvoicesScreen} />
+        <Stack.Screen name="Announcements" component={AnnouncementsScreen} />
+
       </Stack.Navigator>
     </NavigationContainer>
   );
