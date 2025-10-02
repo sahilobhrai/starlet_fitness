@@ -1,5 +1,9 @@
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, TextInput, Button, Switch, TouchableOpacity, Alert } from 'react-native';
+// Import colors from the theme
+import { colors } from '../theme/colors';
+// Import global AppStyles
+import { AppStyles } from '../styles/AppStyles';
 
 const InvoicesScreen = () => {
     const [invoiceDetails, setInvoiceDetails] = useState({
@@ -50,41 +54,41 @@ const InvoicesScreen = () => {
     };
 
     return (
-        <ScrollView style={styles.container}>
-            <Text style={styles.header}>Generate Invoice</Text>
+        <ScrollView style={AppStyles.mainContent}> {/* Replaced styles.container with AppStyles.mainContent */}
+            <Text style={AppStyles.pageTitle}>Generate Invoice</Text> {/* Replaced styles.header with AppStyles.pageTitle */}
 
-            <View style={styles.formCard}>
-                <Text style={styles.formTitle}>Customer Information</Text>
+            <View style={AppStyles.profileDetailsContainer}> {/* Replaced styles.formCard with AppStyles.profileDetailsContainer */}
+                <Text style={AppStyles.profileSectionTitle}>Customer Information</Text> {/* Replaced styles.formTitle with AppStyles.profileSectionTitle */}
                 <TextInput
-                    style={styles.input}
+                    style={AppStyles.profileInput} // Replaced styles.input with AppStyles.profileInput
                     placeholder="Customer Name"
                     value={invoiceDetails.customerName}
                     onChangeText={(value) => handleInputChange('customerName', value)}
                 />
                 <TextInput
-                    style={styles.input}
+                    style={AppStyles.profileInput} // Replaced styles.input with AppStyles.profileInput
                     placeholder="Contact Info (Email/Phone)"
                     value={invoiceDetails.customerContact}
                     onChangeText={(value) => handleInputChange('customerContact', value)}
                 />
 
-                <Text style={styles.formTitle}>Invoice Details</Text>
+                <Text style={AppStyles.profileSectionTitle}>Invoice Details</Text> {/* Replaced styles.formTitle with AppStyles.profileSectionTitle */}
                 <TextInput
-                    style={styles.input}
+                    style={AppStyles.profileInput} // Replaced styles.input with AppStyles.profileInput
                     placeholder="Item Description"
                     value={invoiceDetails.itemDescription}
                     onChangeText={(value) => handleInputChange('itemDescription', value)}
                 />
-                <View style={styles.row}>
+                <View style={AppStyles.detailRow}> {/* Replaced styles.row with AppStyles.detailRow */}
                     <TextInput
-                        style={[styles.input, styles.halfInput]}
+                        style={[AppStyles.profileInput, { width: '48%', marginRight: '2%' }]} // Replaced styles.input, styles.halfInput with AppStyles.profileInput and inline styles
                         placeholder="Quantity"
                         value={invoiceDetails.quantity}
                         onChangeText={(value) => handleInputChange('quantity', value)}
                         keyboardType="numeric"
                     />
                     <TextInput
-                        style={[styles.input, styles.halfInput]}
+                        style={[AppStyles.profileInput, { width: '48%' }]} // Replaced styles.input, styles.halfInput with AppStyles.profileInput and inline styles
                         placeholder="Price per Unit ($)"
                         value={invoiceDetails.price}
                         onChangeText={(value) => handleInputChange('price', value)}
@@ -92,8 +96,8 @@ const InvoicesScreen = () => {
                     />
                 </View>
 
-                <View style={styles.gstContainer}>
-                    <Text style={styles.gstLabel}>Enable GST</Text>
+                <View style={AppStyles.detailRow}> {/* Replaced styles.gstContainer with AppStyles.detailRow */}
+                    <Text style={AppStyles.profileDetailText}>Enable GST</Text> {/* Replaced styles.gstLabel with AppStyles.profileDetailText */}
                     <Switch
                         trackColor={{ false: "#767577", true: "#81b0ff" }}
                         thumbColor={invoiceDetails.gstEnabled ? "#007bff" : "#f4f3f4"}
@@ -105,7 +109,7 @@ const InvoicesScreen = () => {
 
                 {invoiceDetails.gstEnabled && (
                     <TextInput
-                        style={styles.input}
+                        style={AppStyles.profileInput} // Replaced styles.input with AppStyles.profileInput
                         placeholder="GST Rate (%)"
                         value={invoiceDetails.gstRate}
                         onChangeText={(value) => handleInputChange('gstRate', value)}
@@ -113,97 +117,20 @@ const InvoicesScreen = () => {
                     />
                 )}
 
-                <View style={styles.totalSection}>
-                    <Text style={styles.totalLabel}>Total Amount:</Text>
-                    <Text style={styles.totalValue}>${calculateTotal().toFixed(2)}</Text>
+                <View style={AppStyles.detailRow}> {/* Replaced styles.totalSection with AppStyles.detailRow as totalSection is not found in AppStyles */}
+                    <Text style={AppStyles.profileDetailBold}>Total Amount:</Text> {/* Replaced styles.totalLabel with AppStyles.profileDetailBold */}
+                    <Text style={AppStyles.profileDetailBold}>${calculateTotal().toFixed(2)}</Text> {/* Replaced styles.totalValue with AppStyles.profileDetailBold */}
                 </View>
 
-                <Button title="Generate Invoice" onPress={generateInvoice} color="#28a745" />
+                <TouchableOpacity onPress={generateInvoice} style={[AppStyles.modalButton, { backgroundColor: colors.bottleGreen, marginHorizontal: 5, marginTop: 10 }]}> {/* Replaced Button with TouchableOpacity and mapped styles */}
+                    <Text style={AppStyles.modalButtonText}>Generate Invoice</Text>
+                </TouchableOpacity>
             </View>
         </ScrollView>
     );
 };
 
-const styles = StyleSheet.create({
-    container: {
-        flex: 1,
-        padding: 20,
-        backgroundColor: '#f4f7f6',
-    },
-    header: {
-        fontSize: 28,
-        fontWeight: 'bold',
-        marginBottom: 20,
-        color: '#333',
-    },
-    formCard: {
-        backgroundColor: '#ffffff',
-        borderRadius: 10,
-        padding: 20,
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.1,
-        shadowRadius: 5,
-        elevation: 3,
-    },
-    formTitle: {
-        fontSize: 20,
-        fontWeight: '600',
-        marginBottom: 15,
-        color: '#444',
-    },
-    input: {
-        height: 45,
-        borderColor: '#ccc',
-        borderWidth: 1,
-        borderRadius: 8,
-        marginBottom: 15,
-        paddingHorizontal: 10,
-        backgroundColor: '#f9f9f9',
-        fontSize: 16,
-    },
-    row: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        width: '100%',
-    },
-    halfInput: {
-        width: '48%', // Adjust width for two inputs per row
-    },
-    gstContainer: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        marginBottom: 15,
-        padding: 10,
-        backgroundColor: '#f9f9f9',
-        borderRadius: 8,
-        borderWidth: 1,
-        borderColor: '#ccc',
-    },
-    gstLabel: {
-        fontSize: 16,
-        color: '#444',
-    },
-    totalSection: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        marginTop: 10,
-        marginBottom: 20,
-        paddingTop: 15,
-        borderTopWidth: 1,
-        borderTopColor: '#eee',
-    },
-    totalLabel: {
-        fontSize: 18,
-        fontWeight: 'bold',
-        color: '#333',
-    },
-    totalValue: {
-        fontSize: 18,
-        fontWeight: 'bold',
-        color: '#007bff',
-    },
-});
+// Removed the local styles object as requested.
+// Styles are now imported from AppStyles.
 
 export default InvoicesScreen;

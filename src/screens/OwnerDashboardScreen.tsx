@@ -66,7 +66,6 @@ const OwnerDashboardScreen = ({ navigation }: OwnerDashboardScreenProps) => {
         // Render the dashboard overview with stats
         return (
           <ScrollView style={AppStyles.profileContainer} contentContainerStyle={AppStyles.profileContentContainer}>
-            <Text style={AppStyles.sectionTitle}>OWNER DASHBOARD</Text>
             <View style={AppStyles.profileHeader}>
               <Icon name="building" size={80} color={colors.primary} />
               <Text style={AppStyles.profileName}>Starlet Fitness Admin</Text>
@@ -109,7 +108,6 @@ const OwnerDashboardScreen = ({ navigation }: OwnerDashboardScreenProps) => {
         // Fallback to dashboard if an unknown tab is selected
         return (
           <ScrollView style={AppStyles.profileContainer} contentContainerStyle={AppStyles.profileContentContainer}>
-            <Text style={AppStyles.sectionTitle}>OWNER DASHBOARD</Text>
             <View style={AppStyles.profileHeader}>
               <Icon name="building" size={80} color={colors.primary} />
               <Text style={AppStyles.profileName}>Starlet Fitness Admin</Text>
@@ -140,7 +138,7 @@ const OwnerDashboardScreen = ({ navigation }: OwnerDashboardScreenProps) => {
 
   return (
     <SafeAreaView style={AppStyles.safeArea}>
-      <StatusBar backgroundColor="#000" barStyle="light-content" />
+      <StatusBar backgroundColor={colors.black} barStyle="light-content" />
 
       {/* Custom Header */}
       <View style={AppStyles.customHeader}>
@@ -163,7 +161,7 @@ const OwnerDashboardScreen = ({ navigation }: OwnerDashboardScreenProps) => {
           style={AppStyles.bottomNavButton}
           onPress={() => setActiveTab('dashboard')}
         >
-          <Icon name="home" size={24} color={activeTab === 'dashboard' ? '#ff0000' : '#888'} />
+          <Icon name="home" size={24} color={activeTab === 'dashboard' ? colors.red : colors.mediumGray} />
           <Text style={[AppStyles.bottomNavText, activeTab === 'dashboard' && AppStyles.bottomNavTextActive]}>
             Dashboard
           </Text>
@@ -175,7 +173,7 @@ const OwnerDashboardScreen = ({ navigation }: OwnerDashboardScreenProps) => {
           style={AppStyles.bottomNavButton}
           onPress={() => setActiveTab('manageTrainers')}
         >
-          <Icon name="users" size={24} color={activeTab === 'manageTrainers' ? '#ff0000' : '#888'} />
+          <Icon name="users" size={24} color={activeTab === 'manageTrainers' ? colors.red : colors.mediumGray} />
           <Text style={[AppStyles.bottomNavText, activeTab === 'manageTrainers' && AppStyles.bottomNavTextActive]}>
             Trainers
           </Text>
@@ -185,7 +183,7 @@ const OwnerDashboardScreen = ({ navigation }: OwnerDashboardScreenProps) => {
           style={AppStyles.bottomNavButton}
           onPress={() => setActiveTab('manageCustomers')}
         >
-          <Icon name="user-circle-o" size={24} color={activeTab === 'manageCustomers' ? '#ff0000' : '#888'} />
+          <Icon name="user-circle-o" size={24} color={activeTab === 'manageCustomers' ? colors.red : colors.mediumGray} />
           <Text style={[AppStyles.bottomNavText, activeTab === 'manageCustomers' && AppStyles.bottomNavTextActive]}>
             Customers
           </Text>
@@ -195,7 +193,7 @@ const OwnerDashboardScreen = ({ navigation }: OwnerDashboardScreenProps) => {
           style={AppStyles.bottomNavButton}
           onPress={() => setActiveTab('reports')}
         >
-          <Icon name="bar-chart" size={24} color={activeTab === 'reports' ? '#ff0000' : '#888'} />
+          <Icon name="bar-chart" size={24} color={activeTab === 'reports' ? colors.red : colors.mediumGray} />
           <Text style={[AppStyles.bottomNavText, activeTab === 'reports' && AppStyles.bottomNavTextActive]}>
             Reports
           </Text>
@@ -284,7 +282,7 @@ const OwnerDashboardScreen = ({ navigation }: OwnerDashboardScreenProps) => {
       >
         <View style={AppStyles.modalContainer}>
           <View style={AppStyles.modalContent}>
-            <Text style={{ fontSize: 60, color: '#ff0000' }}>✓</Text> {/* Placeholder icon */}
+            <Icon name="times-circle" size={60} color={colors.red} /> {/* Changed to a more appropriate icon */}
             <Text style={AppStyles.modalTitle}>Confirm Logout</Text>
             <Text style={AppStyles.modalText}>Are you sure you want to log out?</Text>
             <View style={AppStyles.modalButtonContainer}>

@@ -1,75 +1,83 @@
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, Button, TouchableOpacity, Alert } from 'react-native';
+// Import colors from the theme
+import { colors } from '../theme/colors';
+// Import global AppStyles
+import { AppStyles } from '../styles/AppStyles';
 
 const ReportsScreen = () => {
     const [reportType, setReportType] = useState<'attendance' | 'bookings'>('attendance');
 
     const renderAttendanceReport = () => (
-        <View style={styles.reportContent}>
-            <Text style={styles.reportTitle}>Attendance Report</Text>
-            <Text style={styles.reportSubtitle}>Period: October 2025</Text>
+        <View style={AppStyles.profileDetailsContainer}> {/* Replaced styles.reportContent with AppStyles.profileDetailsContainer */}
+            <Text style={AppStyles.profileSectionTitle}>Attendance Report</Text> {/* Replaced styles.reportTitle with AppStyles.profileSectionTitle */}
+            <Text style={AppStyles.profileDetailText}>Period: October 2025</Text> {/* Replaced styles.reportSubtitle with AppStyles.profileDetailText */}
             {/* Placeholder for attendance data */}
-            <View style={styles.dataRow}>
-                <Text style={styles.dataLabel}>Trainer A:</Text>
-                <Text style={styles.dataValue}>95%</Text>
+            <View style={AppStyles.detailRow}> {/* Replaced styles.dataRow with AppStyles.detailRow */}
+                <Text style={AppStyles.profileDetailText}>Trainer A:</Text> {/* Replaced styles.dataLabel with AppStyles.profileDetailText */}
+                <Text style={AppStyles.profileDetailBold}>95%</Text> {/* Replaced styles.dataValue with AppStyles.profileDetailBold */}
             </View>
-            <View style={styles.dataRow}>
-                <Text style={styles.dataLabel}>Trainer B:</Text>
-                <Text style={styles.dataValue}>92%</Text>
+            <View style={AppStyles.detailRow}> {/* Replaced styles.dataRow with AppStyles.detailRow */}
+                <Text style={AppStyles.profileDetailText}>Trainer B:</Text> {/* Replaced styles.dataLabel with AppStyles.profileDetailText */}
+                <Text style={AppStyles.profileDetailBold}>92%</Text> {/* Replaced styles.dataValue with AppStyles.profileDetailBold */}
             </View>
-            <View style={styles.dataRow}>
-                <Text style={styles.dataLabel}>Customer X:</Text>
-                <Text style={styles.dataValue}>98%</Text>
+            <View style={AppStyles.detailRow}> {/* Replaced styles.dataRow with AppStyles.detailRow */}
+                <Text style={AppStyles.profileDetailText}>Customer X:</Text> {/* Replaced styles.dataLabel with AppStyles.profileDetailText */}
+                <Text style={AppStyles.profileDetailBold}>98%</Text> {/* Replaced styles.dataValue with AppStyles.profileDetailBold */}
             </View>
-            <View style={styles.dataRow}>
-                <Text style={styles.dataLabel}>Customer Y:</Text>
-                <Text style={styles.dataValue}>90%</Text>
+            <View style={AppStyles.detailRow}> {/* Replaced styles.dataRow with AppStyles.detailRow */}
+                <Text style={AppStyles.profileDetailText}>Customer Y:</Text> {/* Replaced styles.dataLabel with AppStyles.profileDetailText */}
+                <Text style={AppStyles.profileDetailBold}>90%</Text> {/* Replaced styles.dataValue with AppStyles.profileDetailBold */}
             </View>
-            <Button title="Export Attendance Report" onPress={() => Alert.alert('Exporting attendance report...')} color="#007bff" />
+            <TouchableOpacity onPress={() => Alert.alert('Exporting attendance report...')} style={[AppStyles.modalButton, { backgroundColor: colors.primary, marginHorizontal: 5, marginTop: 10 }]}> {/* Replaced Button with TouchableOpacity and mapped styles */}
+                <Text style={AppStyles.modalButtonText}>Export Attendance Report</Text>
+            </TouchableOpacity>
         </View>
     );
 
     const renderBookingsOverview = () => (
-        <View style={styles.reportContent}>
-            <Text style={styles.reportTitle}>Bookings Overview</Text>
-            <Text style={styles.reportSubtitle}>Period: October 2025</Text>
+        <View style={AppStyles.profileDetailsContainer}> {/* Replaced styles.reportContent with AppStyles.profileDetailsContainer */}
+            <Text style={AppStyles.profileSectionTitle}>Bookings Overview</Text> {/* Replaced styles.reportTitle with AppStyles.profileSectionTitle */}
+            <Text style={AppStyles.profileDetailText}>Period: October 2025</Text> {/* Replaced styles.reportSubtitle with AppStyles.profileDetailText */}
             {/* Placeholder for bookings data */}
-            <View style={styles.dataRow}>
-                <Text style={styles.dataLabel}>Total Bookings:</Text>
-                <Text style={styles.dataValue}>150</Text>
+            <View style={AppStyles.detailRow}> {/* Replaced styles.dataRow with AppStyles.detailRow */}
+                <Text style={AppStyles.profileDetailText}>Total Bookings:</Text> {/* Replaced styles.dataLabel with AppStyles.profileDetailText */}
+                <Text style={AppStyles.profileDetailBold}>150</Text> {/* Replaced styles.dataValue with AppStyles.profileDetailBold */}
             </View>
-            <View style={styles.dataRow}>
-                <Text style={styles.dataLabel}>Completed Bookings:</Text>
-                <Text style={styles.dataValue}>130</Text>
+            <View style={AppStyles.detailRow}> {/* Replaced styles.dataRow with AppStyles.detailRow */}
+                <Text style={AppStyles.profileDetailText}>Completed Bookings:</Text> {/* Replaced styles.dataLabel with AppStyles.profileDetailText */}
+                <Text style={AppStyles.profileDetailBold}>130</Text> {/* Replaced styles.dataValue with AppStyles.profileDetailBold */}
             </View>
-            <View style={styles.dataRow}>
-                <Text style={styles.dataLabel}>Cancelled Bookings:</Text>
-                <Text style={styles.dataValue}>20</Text>
+            <View style={AppStyles.detailRow}> {/* Replaced styles.dataRow with AppStyles.detailRow */}
+                <Text style={AppStyles.profileDetailText}>Cancelled Bookings:</Text> {/* Replaced styles.dataLabel with AppStyles.profileDetailText */}
+                <Text style={AppStyles.profileDetailBold}>20</Text> {/* Replaced styles.dataValue with AppStyles.profileDetailBold */}
             </View>
-            <View style={styles.dataRow}>
-                <Text style={styles.dataLabel}>Peak Booking Day:</Text>
-                <Text style={styles.dataValue}>October 15th</Text>
+            <View style={AppStyles.detailRow}> {/* Replaced styles.dataRow with AppStyles.detailRow */}
+                <Text style={AppStyles.profileDetailText}>Peak Booking Day:</Text> {/* Replaced styles.dataLabel with AppStyles.profileDetailText */}
+                <Text style={AppStyles.profileDetailBold}>October 15th</Text> {/* Replaced styles.dataValue with AppStyles.profileDetailBold */}
             </View>
-            <Button title="Export Bookings Overview" onPress={() => Alert.alert('Exporting bookings overview...')} color="#007bff" />
+            <TouchableOpacity onPress={() => Alert.alert('Exporting bookings overview...')} style={[AppStyles.modalButton, { backgroundColor: colors.primary, marginHorizontal: 5, marginTop: 10 }]}> {/* Replaced Button with TouchableOpacity and mapped styles */}
+                <Text style={AppStyles.modalButtonText}>Export Bookings Overview</Text>
+            </TouchableOpacity>
         </View>
     );
 
     return (
-        <ScrollView style={styles.container}>
-            <Text style={styles.header}>Reports</Text>
+        <ScrollView style={AppStyles.mainContent}> {/* Replaced styles.container with AppStyles.mainContent */}
+            <Text style={AppStyles.pageTitle}>Reports</Text> {/* Replaced styles.header with AppStyles.pageTitle */}
 
-            <View style={styles.tabsContainer}>
+            <View style={[AppStyles.modalButtonContainer, { marginHorizontal: 0, marginTop: 0, marginBottom: 20, borderRadius: 8, overflow: 'hidden' }]}> {/* Replaced styles.tabsContainer with AppStyles.modalButtonContainer and inline styles */}
                 <TouchableOpacity
-                    style={[styles.tabButton, reportType === 'attendance' && styles.activeTab]}
+                    style={[AppStyles.modalButton, { flex: 1, paddingVertical: 12, alignItems: 'center', justifyContent: 'center', backgroundColor: reportType === 'attendance' ? colors.darkGray : colors.lightGray }]} // Using AppStyles.modalButton and conditional background
                     onPress={() => setReportType('attendance')}
                 >
-                    <Text style={[styles.tabButtonText, reportType === 'attendance' && styles.activeTabText]}>Attendance</Text>
+                    <Text style={[AppStyles.modalButtonText, { color: reportType === 'attendance' ? colors.lightGray : colors.darkGray }]}>Attendance</Text> {/* Using AppStyles.modalButtonText and conditional text color */}
                 </TouchableOpacity>
                 <TouchableOpacity
-                    style={[styles.tabButton, reportType === 'bookings' && styles.activeTab]}
+                    style={[AppStyles.modalButton, { flex: 1, paddingVertical: 12, alignItems: 'center', justifyContent: 'center', backgroundColor: reportType === 'bookings' ? colors.darkGray : colors.lightGray }]} // Using AppStyles.modalButton and conditional background
                     onPress={() => setReportType('bookings')}
                 >
-                    <Text style={[styles.tabButtonText, reportType === 'bookings' && styles.activeTabText]}>Bookings</Text>
+                    <Text style={[AppStyles.modalButtonText, { color: reportType === 'bookings' ? colors.lightGray : colors.darkGray }]}>Bookings</Text> {/* Using AppStyles.modalButtonText and conditional text color */}
                 </TouchableOpacity>
             </View>
 
@@ -78,85 +86,7 @@ const ReportsScreen = () => {
     );
 };
 
-const styles = StyleSheet.create({
-    container: {
-        flex: 1,
-        padding: 20,
-        backgroundColor: '#f4f7f6',
-    },
-    header: {
-        fontSize: 28,
-        fontWeight: 'bold',
-        marginBottom: 20,
-        color: '#333',
-    },
-    tabsContainer: {
-        flexDirection: 'row',
-        justifyContent: 'center',
-        marginBottom: 20,
-        backgroundColor: '#e0e0e0',
-        borderRadius: 8,
-        overflow: 'hidden',
-    },
-    tabButton: {
-        flex: 1,
-        paddingVertical: 12,
-        alignItems: 'center',
-        justifyContent: 'center',
-        backgroundColor: '#e0e0e0',
-    },
-    activeTab: {
-        backgroundColor: '#007bff', // Primary color for active tab
-    },
-    tabButtonText: {
-        fontSize: 16,
-        color: '#555',
-        fontWeight: '500',
-    },
-    activeTabText: {
-        color: '#ffffff',
-        fontWeight: 'bold',
-    },
-    reportContent: {
-        backgroundColor: '#ffffff',
-        borderRadius: 10,
-        padding: 20,
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.1,
-        shadowRadius: 5,
-        elevation: 3,
-    },
-    reportTitle: {
-        fontSize: 24,
-        fontWeight: 'bold',
-        marginBottom: 10,
-        color: '#444',
-        textAlign: 'center',
-    },
-    reportSubtitle: {
-        fontSize: 16,
-        color: '#777',
-        marginBottom: 20,
-        textAlign: 'center',
-    },
-    dataRow: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        marginBottom: 12,
-        paddingBottom: 10,
-        borderBottomWidth: 1,
-        borderBottomColor: '#eee',
-    },
-    dataLabel: {
-        fontSize: 16,
-        color: '#555',
-    },
-    dataValue: {
-        fontSize: 16,
-        fontWeight: 'bold',
-        color: '#007bff',
-    },
-});
+// Removed the local styles object as requested.
+// Styles are now imported from AppStyles.
 
 export default ReportsScreen;

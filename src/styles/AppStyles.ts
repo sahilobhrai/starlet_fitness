@@ -715,7 +715,7 @@ export const AppStyles = StyleSheet.create({
   profileContainer: {
     flex: 1,
     backgroundColor: colors.black,
-    padding: 20,
+    padding: 0,
   },
   profileContentContainer: {
     alignItems: 'center',
@@ -753,8 +753,8 @@ export const AppStyles = StyleSheet.create({
   },
   profileHeader: {
     alignItems: 'center',
-    marginTop: 20,
-    marginBottom: 30,
+    marginTop: 0,
+    marginBottom: 0,
   },
   profileAvatar: {
     width: 100,
@@ -768,7 +768,7 @@ export const AppStyles = StyleSheet.create({
     fontSize: 28,
     fontWeight: 'bold',
     color: colors.lightGray,
-    marginBottom: 5,
+    marginBottom: 0,
   },
   profileAge: {
     fontSize: 16,

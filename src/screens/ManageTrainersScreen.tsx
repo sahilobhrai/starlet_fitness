@@ -1,5 +1,9 @@
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, TextInput, Button, FlatList, TouchableOpacity } from 'react-native';
+// Import colors from the theme
+import { colors } from '../theme/colors';
+// Import global AppStyles
+import { AppStyles } from '../styles/AppStyles';
 
 interface Trainer {
     id: string;
@@ -64,182 +68,77 @@ const ManageTrainersScreen = () => {
     };
 
     const renderTrainerItem = ({ item }: { item: Trainer }) => (
-        <View style={styles.trainerItem}>
-            <View style={styles.trainerInfo}>
-                <Text style={styles.trainerName}>{item.name}</Text>
-                <Text style={styles.trainerContact}>{item.contact}</Text>
-                <Text style={styles.trainerSpecialization}>{item.specialization}</Text>
+        <View style={AppStyles.detailRow}>
+            <View style={AppStyles.profileDetailsContainer}> {/* Replaced styles.trainerInfo with AppStyles.profileDetailsContainer as trainerInfo is not in AppStyles */}
+                <Text style={AppStyles.profileName}>{item.name}</Text>
+                <Text style={AppStyles.profileDetailText}>{item.contact}</Text>
+                <Text style={AppStyles.profileDetailText}>{item.specialization}</Text>
             </View>
-            <View style={styles.trainerActions}>
-                <TouchableOpacity onPress={() => handleEditTrainer(item)} style={[styles.button, styles.editButton]}>
-                    <Text style={styles.buttonText}>Edit</Text>
+            <View style={AppStyles.modalButtonContainer}> {/* Replaced styles.trainerActions with AppStyles.modalButtonContainer */}
+                <TouchableOpacity onPress={() => handleEditTrainer(item)} style={[AppStyles.modalButton, { backgroundColor: '#ffc107', marginHorizontal: 5 }]}> {/* Replaced styles.button, styles.editButton with AppStyles.modalButton and specific color */}
+                    <Text style={AppStyles.modalButtonText}>Edit</Text>
                 </TouchableOpacity>
-                <TouchableOpacity onPress={() => handleDeleteTrainer(item.id)} style={[styles.button, styles.deleteButton]}>
-                    <Text style={styles.buttonText}>Remove</Text>
+                <TouchableOpacity onPress={() => handleDeleteTrainer(item.id)} style={[AppStyles.modalButton, { backgroundColor: colors.red, marginHorizontal: 5 }]}> {/* Replaced styles.button, styles.deleteButton with AppStyles.modalButton and colors.red */}
+                    <Text style={AppStyles.modalButtonText}>Remove</Text>
                 </TouchableOpacity>
             </View>
         </View>
     );
 
     return (
-        <ScrollView style={styles.container}>
-            <Text style={styles.header}>Manage Trainers</Text>
+        <ScrollView style={AppStyles.mainContent}>
+            <Text style={AppStyles.pageTitle}>Manage Trainers</Text> {/* Replaced styles.header with AppStyles.pageTitle */}
 
-            <View style={styles.formCard}>
-                <Text style={styles.formTitle}>{editingTrainer ? 'Edit Trainer' : 'Add New Trainer'}</Text>
+            <View style={AppStyles.profileDetailsContainer}> {/* Replaced styles.formCard with AppStyles.profileDetailsContainer */}
+                <Text style={AppStyles.profileSectionTitle}>{editingTrainer ? 'Edit Trainer' : 'Add New Trainer'}</Text> {/* Replaced styles.formTitle with AppStyles.profileSectionTitle */}
                 <TextInput
-                    style={styles.input}
+                    style={AppStyles.profileInput} // Replaced styles.input with AppStyles.profileInput
                     placeholder="Trainer Name"
                     value={newTrainerName}
                     onChangeText={setNewTrainerName}
                 />
                 <TextInput
-                    style={styles.input}
+                    style={AppStyles.profileInput} // Replaced styles.input with AppStyles.profileInput
                     placeholder="Contact Info (Email/Phone)"
                     value={newTrainerContact}
                     onChangeText={setNewTrainerContact}
                 />
                 <TextInput
-                    style={styles.input}
+                    style={AppStyles.profileInput} // Replaced styles.input with AppStyles.profileInput
                     placeholder="Specialization"
                     value={newTrainerSpecialization}
                     onChangeText={setNewTrainerSpecialization}
                 />
                 {editingTrainer ? (
-                    <View style={styles.formActions}>
-                        <Button title="Update Trainer" onPress={handleUpdateTrainer} color="#007bff" />
-                        <Button title="Cancel" onPress={handleCancelEdit} color="#6c757d" />
+                    <View style={AppStyles.modalButtonContainer}> {/* Replaced styles.formActions with AppStyles.modalButtonContainer */}
+                        <TouchableOpacity onPress={handleUpdateTrainer} style={[AppStyles.modalButton, { backgroundColor: '#007bff', marginHorizontal: 5 }]}> {/* Replaced styles.button, styles.updateButton with AppStyles.modalButton and specific color */}
+                            <Text style={AppStyles.modalButtonText}>Update Trainer</Text>
+                        </TouchableOpacity>
+                        <TouchableOpacity onPress={handleCancelEdit} style={[AppStyles.modalButton, { backgroundColor: colors.mediumGray, marginHorizontal: 5 }]}> {/* Replaced styles.button, styles.cancelButton with AppStyles.modalButton and colors.mediumGray */}
+                            <Text style={AppStyles.modalButtonText}>Cancel</Text>
+                        </TouchableOpacity>
                     </View>
                 ) : (
-                    <Button title="Add Trainer" onPress={handleAddTrainer} color="#28a745" />
+                    <TouchableOpacity onPress={handleAddTrainer} style={[AppStyles.modalButton, { backgroundColor: colors.bottleGreen, marginHorizontal: 5 }]}> {/* Replaced styles.addButton with AppStyles.modalButton and colors.bottleGreen */}
+                        <Text style={AppStyles.modalButtonText}>Add Trainer</Text>
+                    </TouchableOpacity>
                 )}
             </View>
 
-            <View style={styles.listCard}>
-                <Text style={styles.listTitle}>All Trainers</Text>
+            <View style={AppStyles.profileDetailsContainer}> {/* Replaced styles.listCard with AppStyles.profileDetailsContainer */}
+                <Text style={AppStyles.profileSectionTitle}>All Trainers</Text> {/* Replaced styles.listTitle with AppStyles.profileSectionTitle */}
                 <FlatList
                     data={trainers}
                     renderItem={renderTrainerItem}
                     keyExtractor={item => item.id}
-                    ListEmptyComponent={<Text style={styles.emptyListText}>No trainers added yet.</Text>}
+                    ListEmptyComponent={<Text style={AppStyles.modalText}>No trainers added yet.</Text>}
                 />
             </View>
         </ScrollView>
     );
 };
 
-const styles = StyleSheet.create({
-    container: {
-        flex: 1,
-        padding: 20,
-        backgroundColor: '#f4f7f6',
-    },
-    header: {
-        fontSize: 28,
-        fontWeight: 'bold',
-        marginBottom: 20,
-        color: '#333',
-    },
-    formCard: {
-        backgroundColor: '#ffffff',
-        borderRadius: 10,
-        padding: 15,
-        marginBottom: 20,
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.1,
-        shadowRadius: 5,
-        elevation: 3,
-    },
-    formTitle: {
-        fontSize: 20,
-        fontWeight: '600',
-        marginBottom: 15,
-        color: '#444',
-    },
-    input: {
-        height: 45,
-        borderColor: '#ccc',
-        borderWidth: 1,
-        borderRadius: 8,
-        marginBottom: 15,
-        paddingHorizontal: 10,
-        backgroundColor: '#f9f9f9',
-        fontSize: 16,
-    },
-    formActions: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        marginTop: 10,
-    },
-    listCard: {
-        backgroundColor: '#ffffff',
-        borderRadius: 10,
-        padding: 15,
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.1,
-        shadowRadius: 5,
-        elevation: 3,
-    },
-    listTitle: {
-        fontSize: 20,
-        fontWeight: '600',
-        marginBottom: 15,
-        color: '#444',
-    },
-    trainerItem: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        paddingVertical: 15,
-        borderBottomWidth: 1,
-        borderBottomColor: '#eee',
-    },
-    trainerInfo: {
-        flex: 1,
-        marginRight: 10,
-    },
-    trainerName: {
-        fontSize: 17,
-        fontWeight: '500',
-        color: '#333',
-    },
-    trainerContact: {
-        fontSize: 15,
-        color: '#666',
-    },
-    trainerSpecialization: {
-        fontSize: 15,
-        color: '#666',
-        fontStyle: 'italic',
-    },
-    trainerActions: {
-        flexDirection: 'row',
-    },
-    button: {
-        paddingVertical: 8,
-        paddingHorizontal: 12,
-        borderRadius: 5,
-        marginLeft: 8,
-    },
-    editButton: {
-        backgroundColor: '#ffc107', // Warning color for edit
-    },
-    deleteButton: {
-        backgroundColor: '#dc3545', // Danger color for delete
-    },
-    buttonText: {
-        color: '#ffffff',
-        fontWeight: 'bold',
-        fontSize: 14,
-    },
-    emptyListText: {
-        textAlign: 'center',
-        color: '#888',
-        fontSize: 16,
-        marginTop: 20,
-    },
-});
+// Removed the local styles object as requested.
+// Styles are now imported from AppStyles.
 
 export default ManageTrainersScreen;

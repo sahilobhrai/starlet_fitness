@@ -1,5 +1,9 @@
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, TextInput, Button, FlatList, TouchableOpacity, Alert } from 'react-native';
+// Import colors from the theme
+import { colors } from '../theme/colors';
+// Import global AppStyles
+import { AppStyles } from '../styles/AppStyles';
 
 interface Customer {
     id: string;
@@ -100,72 +104,72 @@ const ManageCustomersScreen = () => {
     };
 
     const renderCustomerItem = ({ item }: { item: Customer }) => (
-        <View style={styles.customerItem}>
-            <View style={styles.customerInfo}>
-                <Text style={styles.customerName}>{item.name}</Text>
-                <Text style={styles.customerContact}>Contact: {item.contact}</Text>
-                <Text style={styles.customerDetails}>
+        <View style={AppStyles.detailRow}> {/* Replaced styles.customerItem with AppStyles.detailRow */}
+            <View style={AppStyles.profileDetailsContainer}> {/* Replaced styles.customerInfo with AppStyles.profileDetailsContainer */}
+                <Text style={AppStyles.profileName}>{item.name}</Text> {/* Replaced styles.customerName with AppStyles.profileName */}
+                <Text style={AppStyles.profileDetailText}>Contact: {item.contact}</Text> {/* Replaced styles.customerContact with AppStyles.profileDetailText */}
+                <Text style={AppStyles.profileDetailText}>
                     Weight: {item.weight || 'N/A'} | Height: {item.height || 'N/A'}
-                </Text>
-                <Text style={styles.customerDetails}>
+                </Text> {/* Replaced styles.customerDetails with AppStyles.profileDetailText */}
+                <Text style={AppStyles.profileDetailText}>
                     Cash: ${item.cashAmount || '0'} | Sessions: {item.sessionsAwarded || '0'}
-                </Text>
+                </Text> {/* Replaced styles.customerDetails with AppStyles.profileDetailText */}
             </View>
-            <View style={styles.customerActions}>
-                <TouchableOpacity onPress={() => handleEditCustomer(item)} style={[styles.button, styles.editButton]}>
-                    <Text style={styles.buttonText}>Edit</Text>
+            <View style={AppStyles.modalButtonContainer}> {/* Replaced styles.customerActions with AppStyles.modalButtonContainer */}
+                <TouchableOpacity onPress={() => handleEditCustomer(item)} style={[AppStyles.modalButton, { backgroundColor: '#ffc107', marginHorizontal: 5 }]}> {/* Replaced styles.button, styles.editButton with AppStyles.modalButton and specific color */}
+                    <Text style={AppStyles.modalButtonText}>Edit</Text> {/* Replaced styles.buttonText with AppStyles.modalButtonText */}
                 </TouchableOpacity>
-                <TouchableOpacity onPress={() => handleDeleteCustomer(item.id)} style={[styles.button, styles.deleteButton]}>
-                    <Text style={styles.buttonText}>Remove</Text>
+                <TouchableOpacity onPress={() => handleDeleteCustomer(item.id)} style={[AppStyles.modalButton, { backgroundColor: colors.red, marginHorizontal: 5 }]}> {/* Replaced styles.button, styles.deleteButton with AppStyles.modalButton and colors.red */}
+                    <Text style={AppStyles.modalButtonText}>Remove</Text> {/* Replaced styles.buttonText with AppStyles.modalButtonText */}
                 </TouchableOpacity>
             </View>
         </View>
     );
 
     return (
-        <ScrollView style={styles.container}>
-            <Text style={styles.header}>Manage Customers</Text>
+        <ScrollView style={AppStyles.mainContent}> {/* Replaced styles.container with AppStyles.mainContent */}
+            <Text style={AppStyles.pageTitle}>Manage Customers</Text> {/* Replaced styles.header with AppStyles.pageTitle */}
 
-            <View style={styles.formCard}>
-                <Text style={styles.formTitle}>{editingCustomer ? 'Edit Customer' : 'Add New Customer'}</Text>
+            <View style={AppStyles.profileDetailsContainer}> {/* Replaced styles.formCard with AppStyles.profileDetailsContainer */}
+                <Text style={AppStyles.profileSectionTitle}>{editingCustomer ? 'Edit Customer' : 'Add New Customer'}</Text> {/* Replaced styles.formTitle with AppStyles.profileSectionTitle */}
                 <TextInput
-                    style={styles.input}
+                    style={AppStyles.profileInput} // Replaced styles.input with AppStyles.profileInput
                     placeholder="Customer Name"
                     value={newCustomerName}
                     onChangeText={setNewCustomerName}
                 />
                 <TextInput
-                    style={styles.input}
+                    style={AppStyles.profileInput} // Replaced styles.input with AppStyles.profileInput
                     placeholder="Contact Info (Email/Phone)"
                     value={newCustomerContact}
                     onChangeText={setNewCustomerContact}
                 />
-                <View style={styles.row}>
+                <View style={AppStyles.detailRow}> {/* Replaced styles.row with AppStyles.detailRow */}
                     <TextInput
-                        style={[styles.input, styles.halfInput]}
+                        style={[AppStyles.profileInput, { width: '48%', marginRight: '2%' }]} // Replaced styles.input, styles.halfInput with AppStyles.profileInput and inline styles
                         placeholder="Weight (kg)"
                         value={newCustomerWeight}
                         onChangeText={setNewCustomerWeight}
                         keyboardType="numeric"
                     />
                     <TextInput
-                        style={[styles.input, styles.halfInput]}
+                        style={[AppStyles.profileInput, { width: '48%' }]} // Replaced styles.input, styles.halfInput with AppStyles.profileInput and inline styles
                         placeholder="Height (cm)"
                         value={newCustomerHeight}
                         onChangeText={setNewCustomerHeight}
                         keyboardType="numeric"
                     />
                 </View>
-                <View style={styles.row}>
+                <View style={AppStyles.detailRow}> {/* Replaced styles.row with AppStyles.detailRow */}
                     <TextInput
-                        style={[styles.input, styles.halfInput]}
+                        style={[AppStyles.profileInput, { width: '48%', marginRight: '2%' }]} // Replaced styles.input, styles.halfInput with AppStyles.profileInput and inline styles
                         placeholder="Cash Amount ($)"
                         value={newCustomerCashAmount}
                         onChangeText={setNewCustomerCashAmount}
                         keyboardType="numeric"
                     />
                     <TextInput
-                        style={[styles.input, styles.halfInput]}
+                        style={[AppStyles.profileInput, { width: '48%' }]} // Replaced styles.input, styles.halfInput with AppStyles.profileInput and inline styles
                         placeholder="Sessions Awarded"
                         value={newCustomerSessionsAwarded}
                         onChangeText={setNewCustomerSessionsAwarded}
@@ -174,148 +178,35 @@ const ManageCustomersScreen = () => {
                 </View>
 
                 {editingCustomer ? (
-                    <View style={styles.formActions}>
-                        <Button title="Update Customer" onPress={handleUpdateCustomer} color="#007bff" />
-                        <Button title="Cancel" onPress={handleCancelEdit} color="#6c757d" />
+                    <View style={AppStyles.modalButtonContainer}> {/* Replaced styles.formActions with AppStyles.modalButtonContainer */}
+                        <TouchableOpacity onPress={handleUpdateCustomer} style={[AppStyles.modalButton, { backgroundColor: '#007bff', marginHorizontal: 5 }]}> {/* Replaced Button with TouchableOpacity and mapped styles */}
+                            <Text style={AppStyles.modalButtonText}>Update Customer</Text>
+                        </TouchableOpacity>
+                        <TouchableOpacity onPress={handleCancelEdit} style={[AppStyles.modalButton, { backgroundColor: colors.mediumGray, marginHorizontal: 5 }]}> {/* Replaced Button with TouchableOpacity and mapped styles */}
+                            <Text style={AppStyles.modalButtonText}>Cancel</Text>
+                        </TouchableOpacity>
                     </View>
                 ) : (
-                    <Button title="Add Customer" onPress={handleAddCustomer} color="#28a745" />
+                    <TouchableOpacity onPress={handleAddCustomer} style={[AppStyles.modalButton, { backgroundColor: colors.bottleGreen, marginHorizontal: 5 }]}> {/* Replaced Button with TouchableOpacity and mapped styles */}
+                        <Text style={AppStyles.modalButtonText}>Add Customer</Text>
+                    </TouchableOpacity>
                 )}
             </View>
 
-            <View style={styles.listCard}>
-                <Text style={styles.listTitle}>All Customers</Text>
+            <View style={AppStyles.profileDetailsContainer}> {/* Replaced styles.listCard with AppStyles.profileDetailsContainer */}
+                <Text style={AppStyles.profileSectionTitle}>All Customers</Text> {/* Replaced styles.listTitle with AppStyles.profileSectionTitle */}
                 <FlatList
                     data={customers}
                     renderItem={renderCustomerItem}
                     keyExtractor={item => item.id}
-                    ListEmptyComponent={<Text style={styles.emptyListText}>No customers added yet.</Text>}
+                    ListEmptyComponent={<Text style={AppStyles.modalText}>No customers added yet.</Text>}
                 />
             </View>
         </ScrollView>
     );
 };
 
-const styles = StyleSheet.create({
-    container: {
-        flex: 1,
-        padding: 20,
-        backgroundColor: '#f4f7f6',
-    },
-    header: {
-        fontSize: 28,
-        fontWeight: 'bold',
-        marginBottom: 20,
-        color: '#333',
-    },
-    formCard: {
-        backgroundColor: '#ffffff',
-        borderRadius: 10,
-        padding: 15,
-        marginBottom: 20,
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.1,
-        shadowRadius: 5,
-        elevation: 3,
-    },
-    formTitle: {
-        fontSize: 20,
-        fontWeight: '600',
-        marginBottom: 15,
-        color: '#444',
-    },
-    input: {
-        height: 45,
-        borderColor: '#ccc',
-        borderWidth: 1,
-        borderRadius: 8,
-        marginBottom: 15,
-        paddingHorizontal: 10,
-        backgroundColor: '#f9f9f9',
-        fontSize: 16,
-    },
-    row: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        width: '100%',
-    },
-    halfInput: {
-        width: '48%', // Adjust width for two inputs per row
-    },
-    formActions: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        marginTop: 10,
-    },
-    listCard: {
-        backgroundColor: '#ffffff',
-        borderRadius: 10,
-        padding: 15,
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.1,
-        shadowRadius: 5,
-        elevation: 3,
-    },
-    listTitle: {
-        fontSize: 20,
-        fontWeight: '600',
-        marginBottom: 15,
-        color: '#444',
-    },
-    customerItem: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        paddingVertical: 15,
-        borderBottomWidth: 1,
-        borderBottomColor: '#eee',
-    },
-    customerInfo: {
-        flex: 1,
-        marginRight: 10,
-    },
-    customerName: {
-        fontSize: 17,
-        fontWeight: '500',
-        color: '#333',
-    },
-    customerContact: {
-        fontSize: 15,
-        color: '#666',
-    },
-    customerDetails: {
-        fontSize: 14,
-        color: '#777',
-        marginTop: 3,
-    },
-    customerActions: {
-        flexDirection: 'row',
-    },
-    button: {
-        paddingVertical: 8,
-        paddingHorizontal: 12,
-        borderRadius: 5,
-        marginLeft: 8,
-    },
-    editButton: {
-        backgroundColor: '#ffc107', // Warning color for edit
-    },
-    deleteButton: {
-        backgroundColor: '#dc3545', // Danger color for delete
-    },
-    buttonText: {
-        color: '#ffffff',
-        fontWeight: 'bold',
-        fontSize: 14,
-    },
-    emptyListText: {
-        textAlign: 'center',
-        color: '#888',
-        fontSize: 16,
-        marginTop: 20,
-    },
-});
+// Removed the local styles object as requested.
+// Styles are now imported from AppStyles.
 
 export default ManageCustomersScreen;
