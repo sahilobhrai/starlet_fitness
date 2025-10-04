@@ -28,88 +28,322 @@ const SessionHistoryScreen = ({ navigation }: SessionHistoryScreenProps) => {
     return acc;
   }, {});
 
-  return (
-    <SafeAreaView style={AppStyles.safeArea}>
-      <StatusBar backgroundColor="#000" barStyle="light-content" />
-      <View style={AppStyles.customHeader}>
-        <Text style={AppStyles.sectionTitle}>Session History</Text>
+  const renderSessionItem = ({ item }: { item: any }) => (
+    <View style={styles.sessionCard}>
+      <View style={styles.sessionHeader}>
+        <View style={styles.trainerInfo}>
+          <View style={styles.avatarContainer}>
+            <Text style={styles.avatarText}>{item.trainer.charAt(0).toUpperCase()}</Text>
+          </View>
+          <View style={styles.trainerDetails}>
+            <Text style={styles.trainerName}>{item.trainer}</Text>
+            <View style={styles.sessionTypeBadge}>
+              <Text style={styles.sessionTypeText}>{item.type}</Text>
+            </View>
+          </View>
+        </View>
+        <View style={styles.sessionIdContainer}>
+          <Text style={styles.sessionIdText}>ID: {item.id}</Text>
+        </View>
       </View>
 
-      <ScrollView contentContainerStyle={styles.scrollContent}>
-        {Object.keys(groupedSessions).length > 0 ? (
-          Object.keys(groupedSessions).sort((a, b) => new Date(b).getTime() - new Date(a).getTime()).map((month) => (
-            <View key={month} style={styles.monthContainer}>
-              <Text style={[AppStyles.sectionTitle, styles.monthTitleOverride]}>{month} ({groupedSessions[month].length} sessions)</Text>
-              {groupedSessions[month].map((session) => (
-                <View key={session.id} style={styles.sessionCard}>
-                  <View style={styles.sessionInfo}>
-                    <Text style={styles.sessionClientName}>{session.trainer}</Text>
-                    <Text style={styles.sessionDetailsText}>{session.type} - {session.date} at {session.time}</Text>
+      <View style={styles.sessionInfo}>
+        <View style={styles.dateTimeContainer}>
+          <View style={styles.dateContainer}>
+            <Icon name="calendar" size={16} color={colors.bottleGreen} />
+            <Text style={styles.dateTimeText}>{item.date}</Text>
+          </View>
+          <View style={styles.timeContainer}>
+            <Icon name="clock-o" size={16} color={colors.bottleGreen} />
+            <Text style={styles.dateTimeText}>{item.time}</Text>
+          </View>
+        </View>
+      </View>
+
+      <View style={styles.sessionStatus}>
+        <View style={styles.statusBadge}>
+          <Icon name="check-circle" size={14} color={colors.bottleGreen} />
+          <Text style={styles.statusText}>Completed</Text>
+        </View>
+      </View>
+    </View>
+  );
+
+  const renderEmptyState = () => (
+    <View style={styles.emptyState}>
+      <View style={styles.emptyStateIcon}>
+        <Icon name="history" size={60} color={colors.bottleGreen} />
+      </View>
+      <Text style={styles.emptyStateTitle}>No Session History</Text>
+      <Text style={styles.emptyStateSubtitle}>Your completed sessions will appear here</Text>
+      <Text style={styles.emptyStateDescription}>
+        Once you complete training sessions, they will be recorded here for your reference.
+      </Text>
+      <View style={styles.emptyStateTip}>
+        <Text style={styles.emptyStateTipText}>
+          💡 Tip: Complete your upcoming sessions to build your history
+        </Text>
+      </View>
+    </View>
+  );
+
+  return (
+    <View style={styles.container}>
+      <ScrollView style={AppStyles.mainContent}>
+        {/* Header Section */}
+        <View style={styles.headerSection}>
+          <Text style={styles.pageTitle}>Session History</Text>
+          <Text style={styles.pageSubtitle}>View your completed training sessions and performance</Text>
+        </View>
+
+        {/* Sessions List Section */}
+        <View style={styles.listSection}>
+          <View style={styles.listHeader}>
+            <Text style={styles.listTitle}>Completed Sessions ({allSessions.length})</Text>
+          </View>
+
+          {Object.keys(groupedSessions).length > 0 ? (
+            Object.keys(groupedSessions).sort((a, b) => new Date(b).getTime() - new Date(a).getTime()).map((month) => (
+              <View key={month} style={styles.monthContainer}>
+                <Text style={styles.monthTitle}>{month} ({groupedSessions[month].length} sessions)</Text>
+                {groupedSessions[month].map((session) => (
+                  <View key={session.id}>
+                    {renderSessionItem({ item: session })}
                   </View>
-                  
-                </View>
-              ))}
-            </View>
-          ))
-        ) : (
-          <Text style={styles.noSessionsText}>No sessions found.</Text>
-        )}
+                ))}
+              </View>
+            ))
+          ) : (
+            renderEmptyState()
+          )}
+        </View>
       </ScrollView>
-    </SafeAreaView>
+    </View>
   );
 };
 
 const styles = StyleSheet.create({
-  scrollContent: {
-    flexGrow: 1,
-    padding: 10, // Adjusted padding to match UpcomingBookingsScreen's listContent
-    paddingBottom: 20,
-  },
-  monthContainer: {
-    marginBottom: 20,
-  },
-  monthTitleOverride: {
-    fontSize: 20, // Keep font size for month title
-    marginBottom: 10,
-    paddingHorizontal: 10, // Add horizontal padding for consistency
-  },
-  sessionCard: {
-    flexDirection: 'row',
-    backgroundColor: colors.white,
-    borderRadius: 10,
-    padding: 15,
-    marginBottom: 10,
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
-  },
-  sessionInfo: {
+  // Main Container
+  container: {
     flex: 1,
+    backgroundColor: colors.black,
   },
-  sessionClientName: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: colors.text,
+
+  // Header Section
+  headerSection: {
+    alignItems: 'center' as const,
+    paddingVertical: 20,
+    paddingHorizontal: 20,
   },
-  sessionDetailsText: {
-    fontSize: 14,
-    color: colors.mediumGray,
-    marginTop: 5,
+  pageTitle: {
+    fontSize: 28,
+    fontWeight: '700' as const,
+    color: colors.lightGray,
+    marginBottom: 8,
+    textAlign: 'center' as const,
   },
-  viewDetailsButton: {
-    backgroundColor: colors.primary, // Using primary color for consistency
-    padding: 10,
-    borderRadius: 5,
-  },
-  noSessionsText: {
+  pageSubtitle: {
     fontSize: 16,
     color: colors.mediumGray,
-    textAlign: 'center',
-    marginTop: 50,
+    textAlign: 'center' as const,
+    lineHeight: 22,
+  },
+
+  // List Section
+  listSection: {
+    paddingHorizontal: 20,
+    paddingBottom: 20,
+  },
+  listHeader: {
+    marginBottom: 16,
+  },
+  listTitle: {
+    fontSize: 22,
+    fontWeight: '700' as const,
+    color: colors.lightGray,
+    textAlign: 'center' as const,
+  },
+
+  // Month Container
+  monthContainer: {
+    marginBottom: 25,
+  },
+  monthTitle: {
+    fontSize: 20,
+    fontWeight: '700' as const,
+    color: colors.bottleGreen,
+    marginBottom: 15,
+    paddingHorizontal: 5,
+  },
+
+  // Session Card
+  sessionCard: {
+    backgroundColor: colors.darkGray,
+    borderRadius: 16,
+    marginBottom: 15,
+    padding: 20,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 8,
+    borderWidth: 1,
+    borderColor: colors.mediumGray + '20',
+  },
+
+  // Session Header
+  sessionHeader: {
+    flexDirection: 'row' as const,
+    justifyContent: 'space-between' as const,
+    alignItems: 'flex-start' as const,
+    marginBottom: 15,
+  },
+  trainerInfo: {
+    flexDirection: 'row' as const,
+    alignItems: 'center' as const,
+    flex: 1,
+  },
+  avatarContainer: {
+    width: 50,
+    height: 50,
+    borderRadius: 25,
+    backgroundColor: colors.bottleGreen,
+    alignItems: 'center' as const,
+    justifyContent: 'center' as const,
+    marginRight: 15,
+  },
+  avatarText: {
+    fontSize: 20,
+    fontWeight: 'bold' as const,
+    color: colors.lightGray,
+  },
+  trainerDetails: {
+    flex: 1,
+  },
+  trainerName: {
+    fontSize: 20,
+    fontWeight: '700' as const,
+    color: colors.lightGray,
+    marginBottom: 5,
+  },
+  sessionTypeBadge: {
+    backgroundColor: colors.bottleGreen + '20',
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 12,
+    alignSelf: 'flex-start' as const,
+  },
+  sessionTypeText: {
+    fontSize: 12,
+    color: colors.bottleGreen,
+    fontWeight: 'bold' as const,
+  },
+  sessionIdContainer: {
+    backgroundColor: colors.lightGray + '10',
+    borderRadius: 8,
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+  },
+  sessionIdText: {
+    fontSize: 12,
+    color: colors.lightGray,
+    fontWeight: 'bold' as const,
+  },
+
+  // Session Info Section
+  sessionInfo: {
+    marginBottom: 15,
+  },
+  dateTimeContainer: {
+    backgroundColor: colors.black + '40',
+    borderRadius: 12,
+    padding: 15,
+  },
+  dateContainer: {
+    flexDirection: 'row' as const,
+    alignItems: 'center' as const,
+    marginBottom: 8,
+  },
+  timeContainer: {
+    flexDirection: 'row' as const,
+    alignItems: 'center' as const,
+  },
+  dateTimeText: {
+    fontSize: 16,
+    color: colors.lightGray,
+    marginLeft: 8,
+    fontWeight: '600' as const,
+  },
+
+  // Session Status
+  sessionStatus: {
+    borderTopWidth: 1,
+    borderTopColor: colors.mediumGray + '30',
+    paddingTop: 15,
+  },
+  statusBadge: {
+    flexDirection: 'row' as const,
+    alignItems: 'center' as const,
+    backgroundColor: colors.bottleGreen + '20',
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 20,
+    alignSelf: 'flex-start' as const,
+  },
+  statusText: {
+    fontSize: 12,
+    color: colors.bottleGreen,
+    fontWeight: '700' as const,
+    marginLeft: 6,
+  },
+
+  // Empty State
+  emptyState: {
+    alignItems: 'center' as const,
+    paddingVertical: 60,
+    paddingHorizontal: 20,
+  },
+  emptyStateIcon: {
+    width: 100,
+    height: 100,
+    borderRadius: 50,
+    backgroundColor: colors.bottleGreen + '20',
+    alignItems: 'center' as const,
+    justifyContent: 'center' as const,
+    marginBottom: 20,
+  },
+  emptyStateTitle: {
+    fontSize: 22,
+    fontWeight: '700' as const,
+    color: colors.mediumGray,
+    marginBottom: 10,
+    textAlign: 'center' as const,
+  },
+  emptyStateSubtitle: {
+    fontSize: 18,
+    fontWeight: '600' as const,
+    color: colors.lightGray,
+    marginBottom: 8,
+    textAlign: 'center' as const,
+  },
+  emptyStateDescription: {
+    fontSize: 14,
+    color: colors.mediumGray,
+    textAlign: 'center' as const,
+    lineHeight: 20,
+    marginBottom: 20,
+  },
+  emptyStateTip: {
+    backgroundColor: colors.bottleGreen + '20',
+    paddingHorizontal: 20,
+    paddingVertical: 12,
+    borderRadius: 20,
+  },
+  emptyStateTipText: {
+    fontSize: 12,
+    color: colors.bottleGreen,
+    fontWeight: 'bold' as const,
+    textAlign: 'center' as const,
   },
 });
 
