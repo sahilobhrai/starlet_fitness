@@ -519,49 +519,70 @@ export const AppStyles = StyleSheet.create({
     letterSpacing: 1,
   },
 
-  // ChatbotAssistant Styles
+  // ChatbotAssistant Styles - Modern Design
   chatbotContainer: {
-    flex: 1
+    flex: 1,
+    backgroundColor: colors.black,
+    paddingHorizontal: 20,
   },
   chatbotGreeting: {
-    fontSize: 20,
+    fontSize: 24,
     fontWeight: 'bold',
     color: colors.lightGray,
     textAlign: 'center',
-    marginVertical: 20,
+    marginTop: 30,
+    marginBottom: 10,
     paddingHorizontal: 20,
   },
-  chatbotQuestion: { // Added new style for the question
+  chatbotQuestion: {
     fontSize: 18,
     color: colors.mediumGray,
     textAlign: 'center',
-    marginBottom: 20,
+    marginBottom: 40,
     paddingHorizontal: 20,
+    lineHeight: 24,
   },
   chatbotOptions: {
-    width: '90%',
+    width: '100%',
     alignSelf: 'center',
-    marginBottom: 30,
+    marginBottom: 40,
+  },
+  chatbotOptionRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginBottom: 15,
   },
   chatbotOptionButton: {
-    backgroundColor: colors.darkGray,
-    paddingVertical: 15,
-    borderRadius: 8,
+    backgroundColor: colors.black,
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    borderRadius: 25, // Capsule shape
     alignItems: 'center',
-    marginBottom: 10,
+    justifyContent: 'center',
+    marginHorizontal: 5,
+    borderWidth: 2,
+    borderColor: '#8B4513', // Brown border
+    flex: 1,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.3,
+    shadowRadius: 4,
+    elevation: 5,
   },
   chatbotOptionButtonText: {
-    color: colors.lightGray,
-    fontSize: 16,
+    color: '#8B4513', // Brown text color
+    fontSize: 14,
     fontWeight: 'bold',
-    letterSpacing: 1,
+    letterSpacing: 0.5,
+    textAlign: 'center',
   },
   chatbotFarewell: {
-    fontSize: 18,
+    fontSize: 16,
     color: colors.mediumGray,
     textAlign: 'center',
     paddingHorizontal: 20,
-    marginBottom: 20,
+    marginTop: 20,
+    fontStyle: 'italic',
   },
 
   // HelpScreen Styles
@@ -603,39 +624,98 @@ export const AppStyles = StyleSheet.create({
     marginBottom: 5,
   },
 
-  // NutritionScreen Styles
+  // NutritionScreen Styles - Modern Design
   nutritionContainer: {
     flex: 1,
-    padding: 10,
-    backgroundColor: colors.black
+    backgroundColor: colors.black,
+    paddingHorizontal: 15,
+    paddingTop: 10,
+  },
+  nutritionHeader: {
+    alignItems: 'center',
+    marginBottom: 25,
+    paddingVertical: 20,
+  },
+  nutritionTitle: {
+    fontSize: 28,
+    fontWeight: 'bold',
+    color: colors.lightGray,
+    letterSpacing: 1.5,
+    textAlign: 'center',
+    marginBottom: 8,
+  },
+  nutritionSubtitle: {
+    fontSize: 16,
+    color: colors.mediumGray,
+    textAlign: 'center',
+    lineHeight: 22,
   },
   dietCard: {
-    backgroundColor: colors.black,
-    borderRadius: 8,
-    padding: 15,
-    marginBottom: 15,
-    borderWidth: 1,
-    borderColor: colors.darkGray
+    backgroundColor: colors.darkGray,
+    borderRadius: 16,
+    padding: 20,
+    marginBottom: 20,
+    borderWidth: 0,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 8,
   },
   dietTitle: {
-    fontSize: 18,
+    fontSize: 20,
     fontWeight: 'bold',
-    marginBottom: 10,
+    marginBottom: 15,
     color: colors.lightGray,
-    letterSpacing: 1
+    letterSpacing: 1,
+    textAlign: 'center',
   },
   mealsContainer: {
-    marginLeft: 10
+    marginTop: 10,
   },
   mealItem: {
     flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 10
+    alignItems: 'flex-start',
+    marginBottom: 15,
+    paddingVertical: 12,
+    paddingHorizontal: 15,
+    backgroundColor: 'rgba(255, 255, 255, 0.05)',
+    borderRadius: 12,
+    borderLeftWidth: 4,
+    borderLeftColor: '#ff0000',
+  },
+  mealIcon: {
+    fontSize: 20,
+    marginRight: 12,
+    marginTop: 2,
   },
   mealText: {
-    marginLeft: 10,
     flex: 1,
-    color: colors.lightGray
+    color: colors.lightGray,
+    fontSize: 15,
+    lineHeight: 22,
+  },
+  dietBadge: {
+    position: 'absolute',
+    top: -10,
+    right: 15,
+    backgroundColor: '#ff0000',
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 20,
+  },
+  dietBadgeText: {
+    color: colors.lightGray,
+    fontSize: 12,
+    fontWeight: 'bold',
+    letterSpacing: 0.5,
+  },
+  dietSubtitle: {
+    fontSize: 14,
+    color: colors.mediumGray,
+    textAlign: 'center',
+    marginBottom: 15,
+    lineHeight: 20,
   },
 
   // CommunityScreen Styles
@@ -896,4 +976,118 @@ export const AppStyles = StyleSheet.create({
   bookingCancelButtonDisabled: {
     backgroundColor: colors.mediumGray, // Gray out when disabled
   },
+
+  // BookSession Information Section Styles
+  infoSectionContainer: {
+    padding: 15,
+  },
+  infoCard: {
+    backgroundColor: colors.darkGray,
+    borderRadius: 12,
+    padding: 20,
+    marginBottom: 20,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.3,
+    shadowRadius: 4,
+    elevation: 5,
+  },
+  infoHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 15,
+  },
+  infoIcon: {
+    marginRight: 10,
+  },
+  infoTitle: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: colors.lightGray,
+    letterSpacing: 1,
+  },
+  infoText: {
+    fontSize: 16,
+    color: colors.mediumGray,
+    lineHeight: 24,
+    textAlign: 'center',
+  },
+  servicesContainer: {
+    marginBottom: 20,
+  },
+  servicesTitle: {
+    fontSize: 22,
+    fontWeight: 'bold',
+    color: colors.lightGray,
+    textAlign: 'center',
+    marginBottom: 20,
+    letterSpacing: 1,
+  },
+  servicesGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'space-between',
+  },
+  serviceCard: {
+    width: '48%',
+    backgroundColor: colors.black,
+    borderRadius: 12,
+    padding: 15,
+    marginBottom: 15,
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: colors.darkGray,
+  },
+  serviceTitle: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: colors.lightGray,
+    marginTop: 10,
+    marginBottom: 8,
+    textAlign: 'center',
+  },
+  serviceText: {
+    fontSize: 14,
+    color: colors.mediumGray,
+    textAlign: 'center',
+    lineHeight: 20,
+  },
+  stepsContainer: {
+    paddingVertical: 10,
+  },
+  step: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    marginBottom: 15,
+    paddingVertical: 10,
+  },
+  stepNumber: {
+    width: 30,
+    height: 30,
+    borderRadius: 15,
+    backgroundColor: colors.red,
+    color: colors.lightGray,
+    textAlign: 'center',
+    textAlignVertical: 'center',
+    fontSize: 16,
+    fontWeight: 'bold',
+    marginRight: 15,
+  },
+  stepText: {
+    flex: 1,
+    fontSize: 16,
+    color: colors.lightGray,
+    lineHeight: 24,
+    marginTop: 2,
+  },
+  tipsList: {
+    paddingVertical: 10,
+  },
+  tipItem: {
+    fontSize: 15,
+    color: colors.lightGray,
+    marginBottom: 8,
+    lineHeight: 22,
+  },
+
 });

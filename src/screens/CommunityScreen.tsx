@@ -1,8 +1,8 @@
 import React from 'react';
-import { View, Text, FlatList, Image, ImageSourcePropType } from 'react-native';
-import Icon from 'react-native-vector-icons/FontAwesome'; // Import Icon component
-import { colors } from '../theme/colors'; // Assuming colors.ts is in src/theme
-import { AppStyles } from '../styles/AppStyles'; // Import AppStyles
+import { View, Text, FlatList, Image, ImageSourcePropType, TouchableOpacity } from 'react-native';
+import Icon from 'react-native-vector-icons/FontAwesome';
+import { colors } from '../theme/colors';
+import { AppStyles } from '../styles/AppStyles';
 
 const COMMUNITY_IMAGE_1 = require('../images/splash5.png');
 const COMMUNITY_IMAGE_2 = require('../images/splash4.png');
@@ -65,49 +65,217 @@ const CommunityScreen = () => {
   ];
 
   const renderPost = ({ item }: { item: CommunityPost }) => (
-    <View style={AppStyles.postCard}>
-      <View style={AppStyles.postHeader}>
-        <View style={AppStyles.postAuthor}>
-          <Icon name="user-circle" size={24} color={'#ff0000'} style={{ marginRight: 5 }} />
-          <Text style={AppStyles.authorName}>{item.author}</Text>
+    <View style={styles.postCard}>
+      {/* Post Header */}
+      <View style={styles.postHeader}>
+        <View style={styles.postAuthor}>
+          <View style={styles.avatarContainer}>
+            <Icon name="user-circle" size={18} color={colors.bottleGreen} />
+          </View>
+          <Text style={styles.authorName}>{item.author}</Text>
         </View>
-        <Text style={AppStyles.postDate}>{item.date}</Text>
+        <Text style={styles.postDate}>{item.date}</Text>
       </View>
 
-      <Text style={AppStyles.postTitle}>{item.title}</Text>
-      <Text style={AppStyles.postContent}>{item.content}</Text>
+      {/* Post Content */}
+      <View style={styles.postContentSection}>
+        <Text style={styles.postTitle}>{item.title}</Text>
+        <Text style={styles.postContent}>{item.content}</Text>
+      </View>
 
+      {/* Post Image */}
       {item.image ? (
-        <Image source={item.image} style={AppStyles.postImage} />
+        <Image source={item.image} style={styles.postImage} />
       ) : (
-        <Text style={AppStyles.imagePlaceholder}>No image available</Text>
+        <View style={styles.imagePlaceholderContainer}>
+          <Icon name="image" size={32} color={colors.mediumGray} />
+          <Text style={styles.imagePlaceholder}>No image available</Text>
+        </View>
       )}
 
-      <View style={AppStyles.postFooter}>
-        <View style={AppStyles.postReaction}>
-          <Icon name="heart" size={20} color={'#ff0000'} style={{ marginRight: 5 }} />
-          <Text style={AppStyles.reactionText}>{item.likes}</Text>
-        </View>
-        <View style={AppStyles.postReaction}>
-          <Icon name="comment" size={20} color={'#ff0000'} style={{ marginRight: 5 }} />
-          <Text style={AppStyles.reactionText}>{item.comments}</Text>
+      {/* Post Footer */}
+      <View style={styles.postFooter}>
+        <TouchableOpacity style={styles.reactionButton}>
+          <Icon name="heart" size={18} color={colors.bottleGreen} />
+          <Text style={styles.reactionCount}>{item.likes}</Text>
+        </TouchableOpacity>
+        <TouchableOpacity style={styles.reactionButton}>
+          <Icon name="comment" size={18} color={colors.bottleGreen} />
+          <Text style={styles.reactionCount}>{item.comments}</Text>
+        </TouchableOpacity>
+        <TouchableOpacity style={styles.reactionButton}>
+          <Icon name="share" size={18} color={colors.bottleGreen} />
+          <Text style={styles.reactionCount}>Share</Text>
+        </TouchableOpacity>
+        <View style={styles.postActions}>
+          <TouchableOpacity style={styles.actionButton}>
+            <Icon name="bookmark" size={16} color={colors.mediumGray} />
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.actionButton}>
+            <Icon name="flag" size={16} color={colors.mediumGray} />
+          </TouchableOpacity>
         </View>
       </View>
     </View>
   );
 
   return (
-    <View style={AppStyles.communityContainer}>
-      <Text style={AppStyles.sectionTitle}>COMMUNITY POSTS</Text>
+    <View style={styles.container}>
+      {/* Header Section */}
+      <View style={styles.headerSection}>
+        <Text style={styles.pageTitle}>Community Posts</Text>
+        <Text style={styles.pageSubtitle}>Stay updated with the latest news, events, and announcements from our fitness community</Text>
+      </View>
 
+      {/* Posts List */}
       <FlatList
         data={posts}
         renderItem={renderPost}
         keyExtractor={item => item.id}
         showsVerticalScrollIndicator={false}
+        contentContainerStyle={styles.postsContainer}
       />
     </View>
   );
 };
 
 export default CommunityScreen;
+
+// Modern styles for CommunityScreen
+const styles = {
+  container: {
+    flex: 1,
+    backgroundColor: colors.black,
+  },
+  headerSection: {
+    alignItems: 'center' as const,
+    paddingVertical: 20,
+    paddingHorizontal: 20,
+  },
+  pageTitle: {
+    fontSize: 28,
+    fontWeight: '700' as const,
+    color: colors.lightGray,
+    marginBottom: 8,
+    textAlign: 'center' as const,
+  },
+  pageSubtitle: {
+    fontSize: 16,
+    color: colors.mediumGray,
+    textAlign: 'center' as const,
+    lineHeight: 22,
+  },
+  postsContainer: {
+    paddingBottom: 20,
+  },
+  postCard: {
+    backgroundColor: colors.darkGray,
+    borderRadius: 12,
+    marginBottom: 12,
+    marginHorizontal: 15,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 4,
+    elevation: 4,
+    borderWidth: 1,
+    borderColor: colors.mediumGray + '20',
+    overflow: 'hidden' as const,
+  },
+  postHeader: {
+    flexDirection: 'row' as const,
+    justifyContent: 'space-between' as const,
+    alignItems: 'center' as const,
+    padding: 10,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.mediumGray + '20',
+  },
+  postAuthor: {
+    flexDirection: 'row' as const,
+    alignItems: 'center' as const,
+    flex: 1,
+  },
+  avatarContainer: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: colors.bottleGreen + '20',
+    alignItems: 'center' as const,
+    justifyContent: 'center' as const,
+    marginRight: 10,
+  },
+  authorName: {
+    fontSize: 14,
+    fontWeight: '600' as const,
+    color: colors.lightGray,
+    marginBottom: 0,
+  },
+  postDate: {
+    fontSize: 11,
+    color: colors.mediumGray,
+  },
+  postContentSection: {
+    padding: 10,
+  },
+  postTitle: {
+    fontSize: 15,
+    fontWeight: '700' as const,
+    color: colors.lightGray,
+    marginBottom: 4,
+    lineHeight: 18,
+  },
+  postContent: {
+    fontSize: 12,
+    color: colors.mediumGray,
+    lineHeight: 16,
+  },
+  postImage: {
+    width: '100%' as any,
+    height: 160,
+    resizeMode: 'cover' as const,
+  },
+  imagePlaceholderContainer: {
+    width: '100%' as any,
+    height: 120,
+    backgroundColor: colors.black + '40',
+    alignItems: 'center' as const,
+    justifyContent: 'center' as const,
+  },
+  imagePlaceholder: {
+    fontSize: 14,
+    color: colors.mediumGray,
+    marginTop: 8,
+  },
+  postFooter: {
+    flexDirection: 'row' as const,
+    justifyContent: 'space-between' as const,
+    alignItems: 'center' as const,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderTopWidth: 1,
+    borderTopColor: colors.mediumGray + '20',
+  },
+  reactionButton: {
+    flexDirection: 'row' as const,
+    alignItems: 'center' as const,
+    paddingVertical: 6,
+    paddingHorizontal: 12,
+    borderRadius: 20,
+    backgroundColor: colors.bottleGreen + '15',
+    marginRight: 8,
+  },
+  reactionCount: {
+    fontSize: 12,
+    color: colors.bottleGreen,
+    fontWeight: '600' as const,
+    marginLeft: 6,
+  },
+  postActions: {
+    flexDirection: 'row' as const,
+    alignItems: 'center' as const,
+  },
+  actionButton: {
+    padding: 8,
+    marginLeft: 4,
+  },
+};

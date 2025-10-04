@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, TouchableOpacity } from 'react-native';
-import { colors } from '../theme/colors'; // Assuming colors.ts is in src/theme
 import { AppStyles } from '../styles/AppStyles'; // Import AppStyles
 
 const greetings = [
@@ -40,42 +39,49 @@ const ChatbotAssistant = ({ navigation, setActiveTab }: ChatbotAssistantProps) =
       <Text style={AppStyles.chatbotQuestion}>How can I help you today?</Text>
 
       <View style={AppStyles.chatbotOptions}>
-        <TouchableOpacity
-          style={AppStyles.chatbotOptionButton}
-          onPress={() => setActiveTab('book')}
-        >
-          <Text style={AppStyles.chatbotOptionButtonText}>Book a Training Session</Text>
-        </TouchableOpacity>
-        <TouchableOpacity
-          style={AppStyles.chatbotOptionButton}
-          onPress={() => setActiveTab('nutrition')}
-        >
-          <Text style={AppStyles.chatbotOptionButtonText}>Nutrition</Text>
-        </TouchableOpacity>
-        <TouchableOpacity
-          style={AppStyles.chatbotOptionButton}
-          onPress={() => setActiveTab('community')}
-        >
-          <Text style={AppStyles.chatbotOptionButtonText}>Community</Text>
-        </TouchableOpacity>
-        <TouchableOpacity
-          style={AppStyles.chatbotOptionButton}
-          onPress={() => navigation.navigate('Help')}
-        >
-          <Text style={AppStyles.chatbotOptionButtonText}>Help</Text>
-        </TouchableOpacity>
-        <TouchableOpacity
-          style={AppStyles.chatbotOptionButton}
-          onPress={() => navigation.navigate('LocateUs')}
-        >
-          <Text style={AppStyles.chatbotOptionButtonText}>Locate Us</Text>
-        </TouchableOpacity>
-        <TouchableOpacity
-          style={AppStyles.chatbotOptionButton}
-          onPress={() => navigation.navigate('Settings')}
-        >
-          <Text style={AppStyles.chatbotOptionButtonText}>Settings</Text>
-        </TouchableOpacity>
+        {/* First row with 3 buttons */}
+        <View style={AppStyles.chatbotOptionRow}>
+          <TouchableOpacity
+            style={AppStyles.chatbotOptionButton}
+            onPress={() => setActiveTab('book')}
+          >
+            <Text style={AppStyles.chatbotOptionButtonText}>Book Training</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={AppStyles.chatbotOptionButton}
+            onPress={() => setActiveTab('nutrition')}
+          >
+            <Text style={AppStyles.chatbotOptionButtonText}>Nutrition</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={AppStyles.chatbotOptionButton}
+            onPress={() => setActiveTab('community')}
+          >
+            <Text style={AppStyles.chatbotOptionButtonText}>Community</Text>
+          </TouchableOpacity>
+        </View>
+
+        {/* Second row with 3 buttons */}
+        <View style={AppStyles.chatbotOptionRow}>
+          <TouchableOpacity
+            style={AppStyles.chatbotOptionButton}
+            onPress={() => navigation.navigate('Help')}
+          >
+            <Text style={AppStyles.chatbotOptionButtonText}>Help</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={AppStyles.chatbotOptionButton}
+            onPress={() => navigation.navigate('LocateUs')}
+          >
+            <Text style={AppStyles.chatbotOptionButtonText}>Locate Us</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={AppStyles.chatbotOptionButton}
+            onPress={() => navigation.navigate('Settings')}
+          >
+            <Text style={AppStyles.chatbotOptionButtonText}>Settings</Text>
+          </TouchableOpacity>
+        </View>
       </View>
 
       <Text style={AppStyles.chatbotFarewell}>{farewell}</Text>

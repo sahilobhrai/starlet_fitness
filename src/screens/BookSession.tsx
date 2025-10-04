@@ -3,6 +3,7 @@ import { View, Text, TouchableOpacity, ScrollView, Modal, Dimensions } from 'rea
 import { Calendar } from 'react-native-calendars';
 import { colors } from '../theme/colors';
 import { AppStyles } from '../styles/AppStyles'; // Import AppStyles
+import Icon from 'react-native-vector-icons/FontAwesome';
 
 const { width } = Dimensions.get('window');
 
@@ -217,6 +218,87 @@ const BookSession = () => {
             }}
           />
         </View>
+
+        {/* Information section when no date is selected */}
+        {!selectedDate && (
+          <View style={AppStyles.infoSectionContainer}>
+            {/* Welcome Section */}
+            <View style={AppStyles.infoCard}>
+              <View style={AppStyles.infoHeader}>
+                <Icon name="star" size={24} color={colors.lightGray} style={AppStyles.infoIcon} />
+                <Text style={AppStyles.infoTitle}>Welcome to Starlet Fitness</Text>
+              </View>
+              <Text style={AppStyles.infoText}>
+                Book your personalized training sessions with our expert trainers. Choose from individual or group sessions tailored to your fitness goals.
+              </Text>
+            </View>
+
+            {/* Services Section */}
+            <View style={AppStyles.servicesContainer}>
+              <Text style={AppStyles.servicesTitle}>Our Services</Text>
+              <View style={AppStyles.servicesGrid}>
+                <View style={AppStyles.serviceCard}>
+                  <Icon name="heart" size={30} color={colors.red} />
+                  <Text style={AppStyles.serviceTitle}>Personal Training</Text>
+                  <Text style={AppStyles.serviceText}>One-on-one sessions with certified trainers</Text>
+                </View>
+                <View style={AppStyles.serviceCard}>
+                  <Icon name="users" size={30} color={colors.red} />
+                  <Text style={AppStyles.serviceTitle}>Group Classes</Text>
+                  <Text style={AppStyles.serviceText}>High-energy group workouts</Text>
+                </View>
+                <View style={AppStyles.serviceCard}>
+                  <Icon name="trophy" size={30} color={colors.red} />
+                  <Text style={AppStyles.serviceTitle}>Nutrition Guidance</Text>
+                  <Text style={AppStyles.serviceText}>Personalized diet plans</Text>
+                </View>
+                <View style={AppStyles.serviceCard}>
+                  <Icon name="calendar" size={30} color={colors.red} />
+                  <Text style={AppStyles.serviceTitle}>Flexible Scheduling</Text>
+                  <Text style={AppStyles.serviceText}>Book sessions that fit your schedule</Text>
+                </View>
+              </View>
+            </View>
+
+            {/* How to Book Section */}
+            <View style={AppStyles.infoCard}>
+              <View style={AppStyles.infoHeader}>
+                <Icon name="question-circle" size={24} color={colors.lightGray} style={AppStyles.infoIcon} />
+                <Text style={AppStyles.infoTitle}>How to Book</Text>
+              </View>
+              <View style={AppStyles.stepsContainer}>
+                <View style={AppStyles.step}>
+                  <Text style={AppStyles.stepNumber}>1</Text>
+                  <Text style={AppStyles.stepText}>Select your preferred date on the calendar</Text>
+                </View>
+                <View style={AppStyles.step}>
+                  <Text style={AppStyles.stepNumber}>2</Text>
+                  <Text style={AppStyles.stepText}>Choose an available time slot</Text>
+                </View>
+                <View style={AppStyles.step}>
+                  <Text style={AppStyles.stepNumber}>3</Text>
+                  <Text style={AppStyles.stepText}>Confirm your booking</Text>
+                </View>
+              </View>
+            </View>
+
+            {/* Tips Section */}
+            <View style={AppStyles.infoCard}>
+              <View style={AppStyles.infoHeader}>
+                <Icon name="lightbulb-o" size={24} color={colors.lightGray} style={AppStyles.infoIcon} />
+                <Text style={AppStyles.infoTitle}>Booking Tips</Text>
+              </View>
+              <View style={AppStyles.tipsList}>
+                <Text style={AppStyles.tipItem}>• Book sessions at least 4 hours in advance</Text>
+                <Text style={AppStyles.tipItem}>• Cancellations must be made 4+ hours before the session</Text>
+                <Text style={AppStyles.tipItem}>• Green slots indicate availability</Text>
+                <Text style={AppStyles.tipItem}>• Red dots show dates with existing bookings</Text>
+              </View>
+            </View>
+
+
+          </View>
+        )}
 
         {selectedDate && (
           <View style={AppStyles.timeSlotsContainer}>
