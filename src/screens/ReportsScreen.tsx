@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, Button, TouchableOpacity, Alert } from 'react-native';
+import { View, Text, ScrollView, TouchableOpacity, Alert } from 'react-native';
 // Import colors from the theme
 import { colors } from '../theme/colors';
 // Import global AppStyles
@@ -9,84 +9,281 @@ const ReportsScreen = ({ navigation }: { navigation: any }) => {
     const [reportType, setReportType] = useState<'attendance' | 'bookings'>('attendance');
 
     const renderAttendanceReport = () => (
-        <View style={AppStyles.profileDetailsContainer}> {/* Replaced styles.reportContent with AppStyles.profileDetailsContainer */}
-            <Text style={AppStyles.profileSectionTitle}>Attendance Report</Text> {/* Replaced styles.reportTitle with AppStyles.profileSectionTitle */}
-            <Text style={AppStyles.profileDetailText}>Period: October 2025</Text> {/* Replaced styles.reportSubtitle with AppStyles.profileDetailText */}
-            {/* Placeholder for attendance data */}
-            <View style={AppStyles.detailRow}> {/* Replaced styles.dataRow with AppStyles.detailRow */}
-                <Text style={AppStyles.profileDetailText}>Trainer A:</Text> {/* Replaced styles.dataLabel with AppStyles.profileDetailText */}
-                <Text style={AppStyles.profileDetailBold}>95%</Text> {/* Replaced styles.dataValue with AppStyles.profileDetailBold */}
+        <View style={styles.reportCard}>
+            <View style={styles.reportHeader}>
+                <Text style={styles.reportTitle}>📋 Attendance Report</Text>
+                <View style={styles.reportBadge}>
+                    <Text style={styles.reportBadgeText}>October 2025</Text>
+                </View>
             </View>
-            <View style={AppStyles.detailRow}> {/* Replaced styles.dataRow with AppStyles.detailRow */}
-                <Text style={AppStyles.profileDetailText}>Trainer B:</Text> {/* Replaced styles.dataLabel with AppStyles.profileDetailText */}
-                <Text style={AppStyles.profileDetailBold}>92%</Text> {/* Replaced styles.dataValue with AppStyles.profileDetailBold */}
+
+            <View style={styles.reportStats}>
+                <View style={styles.statItem}>
+                    <Text style={styles.statLabel}>👨‍💼 Trainer A</Text>
+                    <Text style={styles.statValue}>95%</Text>
+                </View>
+                <View style={styles.statItem}>
+                    <Text style={styles.statLabel}>👩‍💼 Trainer B</Text>
+                    <Text style={styles.statValue}>92%</Text>
+                </View>
+                <View style={styles.statItem}>
+                    <Text style={styles.statLabel}>🏋️ Customer X</Text>
+                    <Text style={styles.statValue}>98%</Text>
+                </View>
+                <View style={styles.statItem}>
+                    <Text style={styles.statLabel}>🏃 Customer Y</Text>
+                    <Text style={styles.statValue}>90%</Text>
+                </View>
             </View>
-            <View style={AppStyles.detailRow}> {/* Replaced styles.dataRow with AppStyles.detailRow */}
-                <Text style={AppStyles.profileDetailText}>Customer X:</Text> {/* Replaced styles.dataLabel with AppStyles.profileDetailText */}
-                <Text style={AppStyles.profileDetailBold}>98%</Text> {/* Replaced styles.dataValue with AppStyles.profileDetailBold */}
-            </View>
-            <View style={AppStyles.detailRow}> {/* Replaced styles.dataRow with AppStyles.detailRow */}
-                <Text style={AppStyles.profileDetailText}>Customer Y:</Text> {/* Replaced styles.dataLabel with AppStyles.profileDetailText */}
-                <Text style={AppStyles.profileDetailBold}>90%</Text> {/* Replaced styles.dataValue with AppStyles.profileDetailBold */}
-            </View>
-            <TouchableOpacity onPress={() => Alert.alert('Exporting attendance report...')} style={[AppStyles.modalButton, { backgroundColor: colors.primary, marginHorizontal: 5, marginTop: 10 }]}> {/* Replaced Button with TouchableOpacity and mapped styles */}
-                <Text style={AppStyles.modalButtonText}>Export Attendance Report</Text>
+
+            <TouchableOpacity
+                onPress={() => Alert.alert('Exporting attendance report...')}
+                style={styles.exportButton}
+            >
+                <Text style={styles.exportButtonText}>📥 Export Report</Text>
             </TouchableOpacity>
         </View>
     );
 
     const renderBookingsOverview = () => (
-        <View style={AppStyles.profileDetailsContainer}> {/* Replaced styles.reportContent with AppStyles.profileDetailsContainer */}
-            <Text style={AppStyles.profileSectionTitle}>Bookings Overview</Text> {/* Replaced styles.reportTitle with AppStyles.profileSectionTitle */}
-            <Text style={AppStyles.profileDetailText}>Period: October 2025</Text> {/* Replaced styles.reportSubtitle with AppStyles.profileDetailText */}
-            {/* Placeholder for bookings data */}
-            <View style={AppStyles.detailRow}> {/* Replaced styles.dataRow with AppStyles.detailRow */}
-                <Text style={AppStyles.profileDetailText}>Total Bookings:</Text> {/* Replaced styles.dataLabel with AppStyles.profileDetailText */}
-                <Text style={AppStyles.profileDetailBold}>150</Text> {/* Replaced styles.dataValue with AppStyles.profileDetailBold */}
+        <View style={styles.reportCard}>
+            <View style={styles.reportHeader}>
+                <Text style={styles.reportTitle}>📅 Bookings Overview</Text>
+                <View style={styles.reportBadge}>
+                    <Text style={styles.reportBadgeText}>October 2025</Text>
+                </View>
             </View>
-            <View style={AppStyles.detailRow}> {/* Replaced styles.dataRow with AppStyles.detailRow */}
-                <Text style={AppStyles.profileDetailText}>Completed Bookings:</Text> {/* Replaced styles.dataLabel with AppStyles.profileDetailText */}
-                <Text style={AppStyles.profileDetailBold}>130</Text> {/* Replaced styles.dataValue with AppStyles.profileDetailBold */}
+
+            <View style={styles.reportStats}>
+                <View style={styles.statItem}>
+                    <Text style={styles.statLabel}>📊 Total Bookings</Text>
+                    <Text style={styles.statValue}>150</Text>
+                </View>
+                <View style={styles.statItem}>
+                    <Text style={styles.statLabel}>✅ Completed Bookings</Text>
+                    <Text style={styles.statValue}>130</Text>
+                </View>
+                <View style={styles.statItem}>
+                    <Text style={styles.statLabel}>❌ Cancelled Bookings</Text>
+                    <Text style={styles.statValue}>20</Text>
+                </View>
+                <View style={styles.statItem}>
+                    <Text style={styles.statLabel}>📈 Peak Booking Day</Text>
+                    <Text style={styles.statValue}>Oct 15th</Text>
+                </View>
             </View>
-            <View style={AppStyles.detailRow}> {/* Replaced styles.dataRow with AppStyles.detailRow */}
-                <Text style={AppStyles.profileDetailText}>Cancelled Bookings:</Text> {/* Replaced styles.dataLabel with AppStyles.profileDetailText */}
-                <Text style={AppStyles.profileDetailBold}>20</Text> {/* Replaced styles.dataValue with AppStyles.profileDetailBold */}
-            </View>
-            <View style={AppStyles.detailRow}> {/* Replaced styles.dataRow with AppStyles.detailRow */}
-                <Text style={AppStyles.profileDetailText}>Peak Booking Day:</Text> {/* Replaced styles.dataLabel with AppStyles.profileDetailText */}
-                <Text style={AppStyles.profileDetailBold}>October 15th</Text> {/* Replaced styles.dataValue with AppStyles.profileDetailBold */}
-            </View>
-            <TouchableOpacity onPress={() => Alert.alert('Exporting bookings overview...')} style={[AppStyles.modalButton, { backgroundColor: colors.primary, marginHorizontal: 5, marginTop: 10 }]}> {/* Replaced Button with TouchableOpacity and mapped styles */}
-                <Text style={AppStyles.modalButtonText}>Export Bookings Overview</Text>
+
+            <TouchableOpacity
+                onPress={() => Alert.alert('Exporting bookings overview...')}
+                style={styles.exportButton}
+            >
+                <Text style={styles.exportButtonText}>📥 Export Report</Text>
             </TouchableOpacity>
         </View>
     );
 
     return (
-        <ScrollView style={AppStyles.mainContent}> {/* Replaced styles.container with AppStyles.mainContent */}
-            <Text style={AppStyles.pageTitle}>Reports</Text> {/* Replaced styles.header with AppStyles.pageTitle */}
-
-            <View style={[AppStyles.modalButtonContainer, { marginHorizontal: 0, marginTop: 0, marginBottom: 20, borderRadius: 8, overflow: 'hidden' }]}> {/* Replaced styles.tabsContainer with AppStyles.modalButtonContainer and inline styles */}
-                <TouchableOpacity
-                    style={[AppStyles.modalButton, { flex: 1, paddingVertical: 12, alignItems: 'center', justifyContent: 'center', backgroundColor: reportType === 'attendance' ? colors.darkGray : colors.lightGray }]} // Using AppStyles.modalButton and conditional background
-                    onPress={() => setReportType('attendance')}
-                >
-                    <Text style={[AppStyles.modalButtonText, { color: reportType === 'attendance' ? colors.lightGray : colors.darkGray }]}>Attendance</Text> {/* Using AppStyles.modalButtonText and conditional text color */}
-                </TouchableOpacity>
-                <TouchableOpacity
-                    style={[AppStyles.modalButton, { flex: 1, paddingVertical: 12, alignItems: 'center', justifyContent: 'center', backgroundColor: reportType === 'bookings' ? colors.darkGray : colors.lightGray }]} // Using AppStyles.modalButton and conditional background
-                    onPress={() => setReportType('bookings')}
-                >
-                    <Text style={[AppStyles.modalButtonText, { color: reportType === 'bookings' ? colors.lightGray : colors.darkGray }]}>Bookings</Text> {/* Using AppStyles.modalButtonText and conditional text color */}
-                </TouchableOpacity>
+        <ScrollView style={AppStyles.mainContent}>
+            {/* Header Section */}
+            <View style={styles.headerSection}>
+                <Text style={styles.pageTitle}>Reports & Analytics</Text>
+                <Text style={styles.pageSubtitle}>View detailed reports and insights about your fitness business</Text>
             </View>
 
-            {reportType === 'attendance' ? renderAttendanceReport() : renderBookingsOverview()}
+            {/* Report Type Selection */}
+            <View style={styles.formSection}>
+                <View style={styles.formCard}>
+                    <Text style={styles.formTitle}>📊 Select Report Type</Text>
+
+                    <View style={styles.tabsContainer}>
+                        <TouchableOpacity
+                            style={[
+                                styles.tabButton,
+                                reportType === 'attendance' && styles.tabButtonActive
+                            ]}
+                            onPress={() => setReportType('attendance')}
+                        >
+                            <Text style={[
+                                styles.tabButtonText,
+                                reportType === 'attendance' ? styles.tabButtonTextActive : styles.tabButtonTextInactive
+                            ]}>
+                                📋 Attendance Report
+                            </Text>
+                        </TouchableOpacity>
+
+                        <TouchableOpacity
+                            style={[
+                                styles.tabButton,
+                                reportType === 'bookings' && styles.tabButtonActive
+                            ]}
+                            onPress={() => setReportType('bookings')}
+                        >
+                            <Text style={[
+                                styles.tabButtonText,
+                                reportType === 'bookings' ? styles.tabButtonTextActive : styles.tabButtonTextInactive
+                            ]}>
+                                📅 Bookings Overview
+                            </Text>
+                        </TouchableOpacity>
+                    </View>
+                </View>
+            </View>
+
+            {/* Report Content Section */}
+            <View style={styles.listSection}>
+                {reportType === 'attendance' ? renderAttendanceReport() : renderBookingsOverview()}
+            </View>
         </ScrollView>
     );
 };
 
-// Removed the local styles object as requested.
-// Styles are now imported from AppStyles.
+const styles = {
+    // Header Section
+    headerSection: {
+        alignItems: 'center' as const,
+        paddingVertical: 20,
+        paddingHorizontal: 20,
+    },
+    pageTitle: {
+        fontSize: 28,
+        fontWeight: '700' as const,
+        color: colors.lightGray,
+        marginBottom: 8,
+        textAlign: 'center' as const,
+    },
+    pageSubtitle: {
+        fontSize: 16,
+        color: colors.mediumGray,
+        textAlign: 'center' as const,
+        lineHeight: 22,
+    },
+
+    // Form Section
+    formSection: {
+        paddingHorizontal: 20,
+        marginBottom: 20,
+    },
+    formCard: {
+        backgroundColor: colors.darkGray,
+        borderRadius: 16,
+        padding: 20,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.3,
+        shadowRadius: 8,
+        elevation: 8,
+    },
+    formTitle: {
+        fontSize: 20,
+        fontWeight: '700' as const,
+        color: colors.lightGray,
+        marginBottom: 20,
+        textAlign: 'center' as const,
+    },
+    tabsContainer: {
+        marginTop: 10,
+    },
+    tabButton: {
+        backgroundColor: colors.black,
+        paddingVertical: 16,
+        paddingHorizontal: 20,
+        borderRadius: 12,
+        marginBottom: 12,
+        alignItems: 'center' as const,
+        borderWidth: 1,
+        borderColor: colors.mediumGray,
+    },
+    tabButtonActive: {
+        backgroundColor: colors.bottleGreen,
+        borderColor: colors.bottleGreen,
+    },
+    tabButtonText: {
+        fontSize: 16,
+        fontWeight: '600' as const,
+        textAlign: 'center' as const,
+    },
+    tabButtonTextActive: {
+        color: colors.lightGray,
+    },
+    tabButtonTextInactive: {
+        color: colors.mediumGray,
+    },
+
+    // List Section
+    listSection: {
+        paddingHorizontal: 20,
+        paddingBottom: 20,
+    },
+
+    // Report Card Styles
+    reportCard: {
+        backgroundColor: colors.darkGray,
+        borderRadius: 16,
+        padding: 20,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.3,
+        shadowRadius: 8,
+        elevation: 8,
+        borderWidth: 1,
+        borderColor: colors.bottleGreen + '30',
+    },
+    reportHeader: {
+        flexDirection: 'row' as const,
+        justifyContent: 'space-between' as const,
+        alignItems: 'center' as const,
+        marginBottom: 20,
+    },
+    reportTitle: {
+        fontSize: 20,
+        fontWeight: '700' as const,
+        color: colors.lightGray,
+    },
+    reportBadge: {
+        backgroundColor: colors.bottleGreen + '20',
+        paddingHorizontal: 12,
+        paddingVertical: 6,
+        borderRadius: 12,
+    },
+    reportBadgeText: {
+        fontSize: 12,
+        fontWeight: '600' as const,
+        color: colors.bottleGreen,
+    },
+    reportStats: {
+        marginBottom: 20,
+    },
+    statItem: {
+        flexDirection: 'row' as const,
+        justifyContent: 'space-between' as const,
+        alignItems: 'center' as const,
+        backgroundColor: colors.black + '40',
+        padding: 12,
+        borderRadius: 8,
+        marginBottom: 8,
+    },
+    statLabel: {
+        fontSize: 14,
+        color: colors.mediumGray,
+        flex: 1,
+    },
+    statValue: {
+        fontSize: 16,
+        fontWeight: '700' as const,
+        color: colors.bottleGreen,
+    },
+    exportButton: {
+        backgroundColor: colors.bottleGreen,
+        paddingVertical: 12,
+        paddingHorizontal: 20,
+        borderRadius: 10,
+        alignItems: 'center' as const,
+    },
+    exportButtonText: {
+        color: colors.lightGray,
+        fontSize: 14,
+        fontWeight: '700' as const,
+    },
+};
 
 export default ReportsScreen;

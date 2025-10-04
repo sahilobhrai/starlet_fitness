@@ -183,7 +183,7 @@ function MainAppContent({ navigation }: { navigation: any }) {
       >
         <View style={AppStyles.modalContainer}>
           <View style={AppStyles.modalContent}>
-            <Text style={{ fontSize: 60, color: '#ff0000' }}>✓</Text> {/* Placeholder icon */}
+            <Icon name="sign-out" size={60} color={colors.red} />
             <Text style={AppStyles.modalTitle}>Confirm Logout</Text>
             <Text style={AppStyles.modalText}>Are you sure you want to log out?</Text>
             <View style={AppStyles.modalButtonContainer}>

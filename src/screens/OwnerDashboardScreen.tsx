@@ -107,6 +107,59 @@ const OwnerDashboardScreen = ({ navigation }: OwnerDashboardScreenProps) => {
     },
   };
 
+  // Dark theme chart configurations for modern look
+  const darkChartConfig = {
+    backgroundColor: colors.darkGray,
+    backgroundGradientFrom: colors.darkGray,
+    backgroundGradientTo: colors.black,
+    decimalPlaces: 0,
+    color: (opacity = 1) => `rgba(76, 175, 80, ${opacity})`,
+    labelColor: (opacity = 1) => colors.lightGray,
+    style: {
+      borderRadius: 16,
+    },
+    propsForLabels: {
+      fontSize: 12,
+    },
+    formatYLabel: (value: string | number) => {
+      const num = parseFloat(value.toString());
+      if (num >= 1000) {
+        return (num / 1000).toFixed(0) + 'k';
+      }
+      return num.toString();
+    },
+  };
+
+  const sessionChartConfig = {
+    backgroundColor: colors.darkGray,
+    backgroundGradientFrom: colors.darkGray,
+    backgroundGradientTo: colors.black,
+    decimalPlaces: 0,
+    color: (opacity = 1) => `rgba(33, 150, 243, ${opacity})`,
+    labelColor: (opacity = 1) => colors.lightGray,
+    style: {
+      borderRadius: 16,
+    },
+    propsForLabels: {
+      fontSize: 12,
+    },
+  };
+
+  const revenueChartConfig = {
+    backgroundColor: colors.darkGray,
+    backgroundGradientFrom: colors.darkGray,
+    backgroundGradientTo: colors.black,
+    decimalPlaces: 0,
+    color: (opacity = 1) => `rgba(255, 193, 7, ${opacity})`,
+    labelColor: (opacity = 1) => colors.lightGray,
+    style: {
+      borderRadius: 16,
+    },
+    propsForLabels: {
+      fontSize: 12,
+    },
+  };
+
   const navigateAndCloseMenu = (screenName: string) => {
     navigation.navigate(screenName);
     setMenuVisible(false);
@@ -134,63 +187,192 @@ const OwnerDashboardScreen = ({ navigation }: OwnerDashboardScreenProps) => {
     setShowLogoutConfirm(true);
   };
 
+  // Quick Action Handlers
+  const handleQuickAction = (action: string) => {
+    switch (action) {
+      case 'addTrainer':
+        navigation.navigate('ManageTrainers');
+        break;
+      case 'sendAnnouncement':
+        navigation.navigate('Announcements');
+        break;
+      case 'generateReport':
+        navigation.navigate('Reports');
+        break;
+      case 'settings':
+        navigation.navigate('Settings');
+        break;
+      default:
+        break;
+    }
+  };
+
   // Function to render content based on active tab
   const renderContent = () => {
     switch (activeTab) {
       case 'dashboard':
-        // Render the dashboard overview with charts
+        // Render the dashboard overview with modern design
         return (
-          <ScrollView style={AppStyles.profileContainer} contentContainerStyle={AppStyles.profileContentContainer}>
-            <View style={AppStyles.profileHeader}>
-              <Icon name="building" size={80} color={colors.primary} />
-              <Text style={AppStyles.profileName}>Starlet Fitness Admin</Text>
-              <Text style={AppStyles.profileAge}>Owner Panel</Text>
+          <ScrollView style={styles.dashboardContainer} contentContainerStyle={styles.dashboardContent}>
+            {/* Welcome Header */}
+            <View style={styles.welcomeSection}>
+              <View style={styles.welcomeHeader}>
+                <Icon name="building" size={60} color={colors.bottleGreen} />
+                <View style={styles.welcomeText}>
+                  <Text style={styles.welcomeTitle}>Welcome back!</Text>
+                  <Text style={styles.welcomeSubtitle}>Starlet Fitness Dashboard</Text>
+                </View>
+              </View>
+              <Text style={styles.welcomeDescription}>Monitor your fitness empire performance and manage your business operations</Text>
             </View>
 
-            {/* Profit Line Chart */}
-            <View style={styles.chartContainer}>
-              <Text style={styles.chartTitle}>Profit Trend</Text>
-              <LineChart
-                data={profitData}
-                width={width - 40}
-                height={220}
-                chartConfig={chartConfig}
-                bezier
-                style={styles.chart}
-              />
+            {/* Stats Cards Section */}
+            <View style={styles.statsSection}>
+              <Text style={styles.sectionTitle}>📊 Performance Overview</Text>
+
+              <View style={styles.statsGrid}>
+                <View style={styles.statCard}>
+                  <View style={styles.statIcon}>
+                    <Icon name="users" size={24} color={colors.bottleGreen} />
+                  </View>
+                  <View style={styles.statContent}>
+                    <Text style={styles.statNumber}>{ownerStats.totalTrainers}</Text>
+                    <Text style={styles.statLabel}>Active Trainers</Text>
+                    <View style={styles.statTrend}>
+                      <Icon name="trending-up" size={12} color={colors.bottleGreen} />
+                      <Text style={styles.statTrendText}>+12% this month</Text>
+                    </View>
+                  </View>
+                </View>
+
+                <View style={styles.statCard}>
+                  <View style={styles.statIcon}>
+                    <Icon name="user-circle-o" size={24} color={colors.bottleGreen} />
+                  </View>
+                  <View style={styles.statContent}>
+                    <Text style={styles.statNumber}>{ownerStats.totalClients}</Text>
+                    <Text style={styles.statLabel}>Total Clients</Text>
+                    <View style={styles.statTrend}>
+                      <Icon name="trending-up" size={12} color={colors.bottleGreen} />
+                      <Text style={styles.statTrendText}>+8% this month</Text>
+                    </View>
+                  </View>
+                </View>
+
+                <View style={styles.statCard}>
+                  <View style={styles.statIcon}>
+                    <Icon name="money" size={24} color={colors.bottleGreen} />
+                  </View>
+                  <View style={styles.statContent}>
+                    <Text style={styles.statNumber}>{ownerStats.revenueThisMonth}</Text>
+                    <Text style={styles.statLabel}>Monthly Revenue</Text>
+                    <View style={styles.statTrend}>
+                      <Icon name="trending-up" size={12} color={colors.bottleGreen} />
+                      <Text style={styles.statTrendText}>+15% this month</Text>
+                    </View>
+                  </View>
+                </View>
+
+                <View style={styles.statCard}>
+                  <View style={styles.statIcon}>
+                    <Icon name="hourglass-half" size={24} color={colors.bottleGreen} />
+                  </View>
+                  <View style={styles.statContent}>
+                    <Text style={styles.statNumber}>{ownerStats.pendingApprovals}</Text>
+                    <Text style={styles.statLabel}>Pending Approvals</Text>
+                    <View style={styles.statTrend}>
+                      <Icon name="clock-o" size={12} color={colors.bottleGreen} />
+                      <Text style={styles.statTrendText}>Requires attention</Text>
+                    </View>
+                  </View>
+                </View>
+              </View>
             </View>
 
-            {/* Customer Sessions Bar Chart */}
-            <View style={styles.chartContainer}>
-              <Text style={styles.chartTitle}>Customer Sessions</Text>
-              <BarChart
-                data={sessionsData}
-                width={width - 40}
-                height={220}
-                yAxisLabel=""
-                yAxisSuffix=""
-                chartConfig={{
-                  ...chartConfig,
-                  color: (opacity = 1) => `rgba(0, 122, 255, ${opacity})`,
-                }}
-                style={styles.chart}
-                showValuesOnTopOfBars
-              />
+            {/* Charts Section */}
+            <View style={styles.chartsSection}>
+              <Text style={styles.sectionTitle}>📈 Analytics & Insights</Text>
+
+              {/* Profit Trend Chart */}
+              <View style={styles.chartCard}>
+                <View style={styles.chartHeader}>
+                  <Text style={styles.chartTitle}>💰 Profit Trend</Text>
+                  <View style={styles.chartBadge}>
+                    <Text style={styles.chartBadgeText}>6 Months</Text>
+                  </View>
+                </View>
+                <LineChart
+                  data={profitData}
+                  width={width - 60}
+                  height={200}
+                  chartConfig={darkChartConfig}
+                  bezier
+                  style={styles.darkChart}
+                />
+              </View>
+
+              {/* Sessions Chart */}
+              <View style={styles.chartCard}>
+                <View style={styles.chartHeader}>
+                  <Text style={styles.chartTitle}>🏋️ Customer Sessions</Text>
+                  <View style={styles.chartBadge}>
+                    <Text style={styles.chartBadgeText}>Monthly</Text>
+                  </View>
+                </View>
+                <BarChart
+                  data={sessionsData}
+                  width={width - 60}
+                  height={200}
+                  yAxisLabel=""
+                  yAxisSuffix=""
+                  chartConfig={sessionChartConfig}
+                  style={styles.darkChart}
+                  showValuesOnTopOfBars
+                />
+              </View>
+
+              {/* Revenue Distribution */}
+              <View style={styles.chartCard}>
+                <View style={styles.chartHeader}>
+                  <Text style={styles.chartTitle}>🏢 Revenue by Branch</Text>
+                  <View style={styles.chartBadge}>
+                    <Text style={styles.chartBadgeText}>Current Month</Text>
+                  </View>
+                </View>
+                <PieChart
+                  data={revenueData}
+                  width={width - 60}
+                  height={200}
+                  chartConfig={revenueChartConfig}
+                  accessor="population"
+                  backgroundColor="transparent"
+                  paddingLeft="15"
+                  style={styles.darkChart}
+                />
+              </View>
             </View>
 
-            {/* Revenue Pie Chart */}
-            <View style={styles.chartContainer}>
-              <Text style={styles.chartTitle}>Revenue by Branch</Text>
-              <PieChart
-                data={revenueData}
-                width={width - 40}
-                height={220}
-                chartConfig={chartConfig}
-                accessor="population"
-                backgroundColor="transparent"
-                paddingLeft="15"
-                style={styles.chart}
-              />
+            {/* Quick Actions Section */}
+            <View style={styles.actionsSection}>
+              <Text style={styles.sectionTitle}>⚡ Quick Actions</Text>
+              <View style={styles.actionsGrid}>
+                <TouchableOpacity style={styles.actionCard} onPress={() => handleQuickAction('addTrainer')}>
+                  <Icon name="plus" size={20} color={colors.bottleGreen} />
+                  <Text style={styles.actionText}>Add Trainer</Text>
+                </TouchableOpacity>
+                <TouchableOpacity style={styles.actionCard} onPress={() => handleQuickAction('sendAnnouncement')}>
+                  <Icon name="bullhorn" size={20} color={colors.bottleGreen} />
+                  <Text style={styles.actionText}>Send Announcement</Text>
+                </TouchableOpacity>
+                <TouchableOpacity style={styles.actionCard} onPress={() => handleQuickAction('generateReport')}>
+                  <Icon name="file-text-o" size={20} color={colors.bottleGreen} />
+                  <Text style={styles.actionText}>Generate Report</Text>
+                </TouchableOpacity>
+                <TouchableOpacity style={styles.actionCard} onPress={() => handleQuickAction('settings')}>
+                  <Icon name="cog" size={20} color={colors.bottleGreen} />
+                  <Text style={styles.actionText}>Settings</Text>
+                </TouchableOpacity>
+              </View>
             </View>
           </ScrollView>
         );
@@ -402,23 +584,217 @@ const OwnerDashboardScreen = ({ navigation }: OwnerDashboardScreenProps) => {
   );
 };
 
-// Styles specific to OwnerDashboardScreen if any, otherwise use AppStyles
+// Comprehensive styles for modern dashboard design
 const styles = StyleSheet.create({
-  chartContainer: {
-    marginVertical: 15,
+  // Dashboard Container
+  dashboardContainer: {
+    flex: 1,
+    backgroundColor: colors.black,
+  },
+  dashboardContent: {
+    paddingBottom: 100,
+  },
+
+  // Welcome Section
+  welcomeSection: {
+    alignItems: 'center' as const,
+    paddingVertical: 20,
+    paddingHorizontal: 20,
+    marginBottom: 10,
+  },
+  welcomeHeader: {
+    flexDirection: 'row' as const,
+    alignItems: 'center' as const,
+    marginBottom: 15,
+  },
+  welcomeText: {
+    marginLeft: 15,
+    flex: 1,
+  },
+  welcomeTitle: {
+    fontSize: 24,
+    fontWeight: '700' as const,
+    color: colors.lightGray,
+    marginBottom: 4,
+  },
+  welcomeSubtitle: {
+    fontSize: 16,
+    color: colors.bottleGreen,
+    fontWeight: '600' as const,
+  },
+  welcomeDescription: {
+    fontSize: 14,
+    color: colors.mediumGray,
+    textAlign: 'center' as const,
+    lineHeight: 20,
+    opacity: 0.8,
+  },
+
+  // Section Titles
+  sectionTitle: {
+    fontSize: 20,
+    fontWeight: '700' as const,
+    color: colors.lightGray,
+    marginBottom: 20,
+    textAlign: 'center' as const,
+  },
+
+  // Stats Section
+  statsSection: {
+    paddingHorizontal: 20,
+    marginBottom: 20,
+  },
+  statsGrid: {
+    flexDirection: 'row' as const,
+    flexWrap: 'wrap' as const,
+    justifyContent: 'space-between' as const,
+  },
+  statCard: {
+    width: '48%',
+    backgroundColor: colors.darkGray,
+    borderRadius: 16,
+    padding: 15,
+    marginBottom: 15,
+    borderWidth: 1,
+    borderColor: colors.mediumGray + '20',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+  statIcon: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: colors.bottleGreen + '20',
+    alignItems: 'center' as const,
+    justifyContent: 'center' as const,
+    marginBottom: 10,
+  },
+  statContent: {
+    flex: 1,
+  },
+  statNumber: {
+    fontSize: 24,
+    fontWeight: '700' as const,
+    color: colors.lightGray,
+    marginBottom: 4,
+  },
+  statLabel: {
+    fontSize: 14,
+    color: colors.mediumGray,
+    marginBottom: 6,
+    fontWeight: '500' as const,
+  },
+  statTrend: {
+    flexDirection: 'row' as const,
+    alignItems: 'center' as const,
+  },
+  statTrendText: {
+    fontSize: 12,
+    color: colors.bottleGreen,
+    marginLeft: 4,
+    fontWeight: '600' as const,
+  },
+
+  // Charts Section
+  chartsSection: {
+    paddingHorizontal: 20,
+    marginBottom: 20,
+  },
+  chartCard: {
+    backgroundColor: colors.darkGray,
+    borderRadius: 16,
+    padding: 20,
+    marginBottom: 20,
+    borderWidth: 1,
+    borderColor: colors.mediumGray + '20',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
     alignItems: 'center',
+  },
+  chartHeader: {
+    flexDirection: 'row' as const,
+    justifyContent: 'space-between' as const,
+    alignItems: 'center' as const,
+    marginBottom: 15,
   },
   chartTitle: {
     fontSize: 18,
-    fontWeight: 'bold',
-    marginBottom: 10,
-    color: colors.white,
+    fontWeight: '700' as const,
+    color: colors.lightGray,
+  },
+  chartBadge: {
+    backgroundColor: colors.bottleGreen + '20',
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 12,
+  },
+  chartBadgeText: {
+    fontSize: 12,
+    color: colors.bottleGreen,
+    fontWeight: '600' as const,
+  },
+
+  // Chart Styles
+  darkChart: {
+    marginVertical: 8,
+    borderRadius: 16,
+  },
+
+  // Quick Actions Section
+  actionsSection: {
+    paddingHorizontal: 20,
+    marginBottom: 20,
+  },
+  actionsGrid: {
+    flexDirection: 'row' as const,
+    flexWrap: 'wrap' as const,
+    justifyContent: 'space-between' as const,
+  },
+  actionCard: {
+    width: '48%',
+    backgroundColor: colors.darkGray,
+    borderRadius: 12,
+    padding: 20,
+    alignItems: 'center' as const,
+    marginBottom: 15,
+    borderWidth: 1,
+    borderColor: colors.mediumGray + '20',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+  actionText: {
+    fontSize: 14,
+    fontWeight: '600' as const,
+    color: colors.lightGray,
+    marginTop: 8,
+    textAlign: 'center' as const,
+  },
+
+  // Legacy chart styles (keeping for backward compatibility)
+  chartContainer: {
+    marginVertical: 15,
+    alignItems: 'center',
   },
   chart: {
     marginVertical: 8,
     borderRadius: 16,
     padding: 5,
-  }
+  },
+
+  // Additional styles for better centering
+  centeredContent: {
+    alignItems: 'center' as const,
+    justifyContent: 'center' as const,
+  },
 });
 
 export default OwnerDashboardScreen;
