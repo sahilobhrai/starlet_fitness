@@ -66,13 +66,20 @@ function MainAppContent({ navigation }: { navigation: any }) {
 
       {/* Custom Header */}
       <View style={AppStyles.customHeader}>
-        <Image source={require('../images/logo_main.png')} style={AppStyles.headerLogo} />
+        <Image
+          source={require('../images/app_icon.png')}
+          style={[AppStyles.headerLogo, { backgroundColor: 'black', resizeMode: 'contain' }]}
+        />
         <View style={AppStyles.headerIcons}>
-          <TouchableOpacity style={AppStyles.headerIcon} onPress={() => setMenuVisible(true)}>
-            <Icon name="bars" size={24} color={colors.lightGray} />
+          <TouchableOpacity
+            style={AppStyles.headerIcon}
+            onPress={() => setMenuVisible(true)}
+          >
+            <Icon name="bars" size={30} color={colors.lightGray} />
           </TouchableOpacity>
         </View>
       </View>
+
 
       <View style={AppStyles.mainContent}>
         {renderContent()}

@@ -12,7 +12,7 @@ interface Trainer {
     specialization: string;
 }
 
-const ManageTrainersScreen = () => {
+const ManageTrainersScreen = ({ navigation }: { navigation: any }) => {
     const [trainers, setTrainers] = useState<Trainer[]>([
         { id: '1', name: 'John Smith', contact: 'john.smith@example.com', specialization: 'Weightlifting' },
         { id: '2', name: 'Emily Johnson', contact: 'emily.j@example.com', specialization: 'Yoga' },

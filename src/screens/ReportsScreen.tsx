@@ -5,7 +5,7 @@ import { colors } from '../theme/colors';
 // Import global AppStyles
 import { AppStyles } from '../styles/AppStyles';
 
-const ReportsScreen = () => {
+const ReportsScreen = ({ navigation }: { navigation: any }) => {
     const [reportType, setReportType] = useState<'attendance' | 'bookings'>('attendance');
 
     const renderAttendanceReport = () => (

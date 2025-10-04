@@ -4,6 +4,7 @@ import Icon from 'react-native-vector-icons/FontAwesome';
 import { colors } from '../theme/colors';
 import { AppStyles } from '../styles/AppStyles';
 import AsyncStorage from '@react-native-async-storage/async-storage'; // Import AsyncStorage
+import { LineChart, BarChart, PieChart } from 'react-native-chart-kit';
 
 // Import the new screens for admin dashboard
 import DashboardScreen from './DashboardScreen'; // Assuming this is the main dashboard overview
@@ -30,6 +31,80 @@ const OwnerDashboardScreen = ({ navigation }: OwnerDashboardScreenProps) => {
     totalClients: 150,
     revenueThisMonth: '₹50,000',
     pendingApprovals: 3,
+  };
+
+  // Sample data for charts
+  const profitData = {
+    labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
+    datasets: [
+      {
+        data: [20000, 25000, 30000, 28000, 35000, 42000],
+        color: (opacity = 1) => `rgba(134, 65, 244, ${opacity})`,
+        strokeWidth: 2,
+      },
+    ],
+  };
+
+  const sessionsData = {
+    labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
+    datasets: [
+      {
+        data: [120, 150, 180, 200, 170, 220],
+      },
+    ],
+  };
+
+  const revenueData = [
+    {
+      name: 'Branch A',
+      population: 45000,
+      color: '#FF6384',
+      legendFontColor: '#7F7F7F',
+      legendFontSize: 12,
+    },
+    {
+      name: 'Branch B',
+      population: 38000,
+      color: '#36A2EB',
+      legendFontColor: '#7F7F7F',
+      legendFontSize: 12,
+    },
+    {
+      name: 'Branch C',
+      population: 32000,
+      color: '#FFCE56',
+      legendFontColor: '#7F7F7F',
+      legendFontSize: 12,
+    },
+    {
+      name: 'Branch D',
+      population: 28000,
+      color: '#4BC0C0',
+      legendFontColor: '#7F7F7F',
+      legendFontSize: 12,
+    },
+  ];
+
+  const chartConfig = {
+    backgroundColor: colors.white,
+    backgroundGradientFrom: colors.white,
+    backgroundGradientTo: colors.white,
+    decimalPlaces: 0,
+    color: (opacity = 1) => `rgba(0, 0, 0, ${opacity})`,
+    labelColor: (opacity = 1) => `rgba(0, 0, 0, ${opacity})`,
+    style: {
+      borderRadius: 16,
+    },
+    propsForLabels: {
+      fontSize: 12,
+    },
+    formatYLabel: (value: string | number) => {
+      const num = parseFloat(value.toString());
+      if (num >= 1000) {
+        return (num / 1000).toFixed(0) + 'k';
+      }
+      return num.toString();
+    },
   };
 
   const navigateAndCloseMenu = (screenName: string) => {
@@ -63,7 +138,7 @@ const OwnerDashboardScreen = ({ navigation }: OwnerDashboardScreenProps) => {
   const renderContent = () => {
     switch (activeTab) {
       case 'dashboard':
-        // Render the dashboard overview with stats
+        // Render the dashboard overview with charts
         return (
           <ScrollView style={AppStyles.profileContainer} contentContainerStyle={AppStyles.profileContentContainer}>
             <View style={AppStyles.profileHeader}>
@@ -71,39 +146,66 @@ const OwnerDashboardScreen = ({ navigation }: OwnerDashboardScreenProps) => {
               <Text style={AppStyles.profileName}>Starlet Fitness Admin</Text>
               <Text style={AppStyles.profileAge}>Owner Panel</Text>
             </View>
-            <View style={AppStyles.profileDetailsContainer}>
-              <View style={AppStyles.detailRow}>
-                <Icon name="users" size={20} color={colors.lightGray} style={AppStyles.detailIcon} />
-                <Text style={AppStyles.profileDetailText}>Total Trainers: <Text style={AppStyles.profileDetailBold}>{ownerStats.totalTrainers}</Text></Text>
-              </View>
-              <View style={AppStyles.detailRow}>
-                <Icon name="user-circle-o" size={20} color={colors.lightGray} style={AppStyles.detailIcon} />
-                <Text style={AppStyles.profileDetailText}>Total Clients: <Text style={AppStyles.profileDetailBold}>{ownerStats.totalClients}</Text></Text>
-              </View>
-              <View style={AppStyles.detailRow}>
-                <Icon name="money" size={20} color={colors.lightGray} style={AppStyles.detailIcon} />
-                <Text style={AppStyles.profileDetailText}>Revenue (This Month): <Text style={AppStyles.profileDetailBold}>{ownerStats.revenueThisMonth}</Text></Text>
-              </View>
-              <View style={AppStyles.detailRow}>
-                <Icon name="hourglass-half" size={20} color={colors.lightGray} style={AppStyles.detailIcon} />
-                <Text style={AppStyles.profileDetailText}>Pending Approvals: <Text style={AppStyles.profileDetailBold}>{ownerStats.pendingApprovals}</Text></Text>
-              </View>
+
+            {/* Profit Line Chart */}
+            <View style={styles.chartContainer}>
+              <Text style={styles.chartTitle}>Profit Trend</Text>
+              <LineChart
+                data={profitData}
+                width={width - 40}
+                height={220}
+                chartConfig={chartConfig}
+                bezier
+                style={styles.chart}
+              />
             </View>
-            {/* Removed old cards */}
+
+            {/* Customer Sessions Bar Chart */}
+            <View style={styles.chartContainer}>
+              <Text style={styles.chartTitle}>Customer Sessions</Text>
+              <BarChart
+                data={sessionsData}
+                width={width - 40}
+                height={220}
+                yAxisLabel=""
+                yAxisSuffix=""
+                chartConfig={{
+                  ...chartConfig,
+                  color: (opacity = 1) => `rgba(0, 122, 255, ${opacity})`,
+                }}
+                style={styles.chart}
+                showValuesOnTopOfBars
+              />
+            </View>
+
+            {/* Revenue Pie Chart */}
+            <View style={styles.chartContainer}>
+              <Text style={styles.chartTitle}>Revenue by Branch</Text>
+              <PieChart
+                data={revenueData}
+                width={width - 40}
+                height={220}
+                chartConfig={chartConfig}
+                accessor="population"
+                backgroundColor="transparent"
+                paddingLeft="15"
+                style={styles.chart}
+              />
+            </View>
           </ScrollView>
         );
       case 'manageBranches':
-        return <ManageBranchesScreen />; // Render ManageBranchesScreen
+        return <ManageBranchesScreen navigation={navigation} />; // Render ManageBranchesScreen
       case 'manageTrainers':
-        return <ManageTrainersScreen />; // Render ManageTrainersScreen
+        return <ManageTrainersScreen navigation={navigation} />; // Render ManageTrainersScreen
       case 'manageCustomers':
-        return <ManageCustomersScreen />; // Render ManageCustomersScreen
+        return <ManageCustomersScreen navigation={navigation} />; // Render ManageCustomersScreen
       case 'reports':
-        return <ReportsScreen />; // Render ReportsScreen
+        return <ReportsScreen navigation={navigation} />; // Render ReportsScreen
       case 'invoices':
-        return <InvoicesScreen />; // Render InvoicesScreen
+        return <InvoicesScreen navigation={navigation} />; // Render InvoicesScreen
       case 'announcements':
-        return <AnnouncementsScreen />; // Render AnnouncementsScreen
+        return <AnnouncementsScreen navigation={navigation} />; // Render AnnouncementsScreen
       default:
         // Fallback to dashboard if an unknown tab is selected
         return (
@@ -302,7 +404,21 @@ const OwnerDashboardScreen = ({ navigation }: OwnerDashboardScreenProps) => {
 
 // Styles specific to OwnerDashboardScreen if any, otherwise use AppStyles
 const styles = StyleSheet.create({
-  // Removed old card styles as they are no longer used
+  chartContainer: {
+    marginVertical: 15,
+    alignItems: 'center',
+  },
+  chartTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    marginBottom: 10,
+    color: colors.white,
+  },
+  chart: {
+    marginVertical: 8,
+    borderRadius: 16,
+    padding: 5,
+  }
 });
 
 export default OwnerDashboardScreen;

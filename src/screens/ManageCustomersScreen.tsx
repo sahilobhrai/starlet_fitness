@@ -15,7 +15,7 @@ interface Customer {
     sessionsAwarded: string; // Storing as string for input flexibility
 }
 
-const ManageCustomersScreen = () => {
+const ManageCustomersScreen = ({ navigation }: { navigation: any }) => {
     const [customers, setCustomers] = useState<Customer[]>([
         { id: '1', name: 'Alice Wonderland', contact: 'alice@example.com', weight: '60', height: '165', cashAmount: '500', sessionsAwarded: '10' },
         { id: '2', name: 'Bob The Builder', contact: 'bob@example.com', weight: '85', height: '180', cashAmount: '1000', sessionsAwarded: '20' },
