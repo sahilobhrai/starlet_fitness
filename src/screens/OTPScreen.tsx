@@ -4,7 +4,7 @@ import { colors } from '../theme/colors'; // Assuming colors.ts is in src/theme
 import Notification from '../components/Notification'; // Import the Notification component
 import { AppStyles } from '../styles/AppStyles'; // Import AppStyles
 import AsyncStorage from '@react-native-async-storage/async-storage'; // Import AsyncStorage
-
+import { sendOtp, verifyOtp } from '../api/index'; // Import the sendOtp function
 // Import the logo
 import logo from '../images/logo_main.png'; // Assuming logo.png is the correct file
 
@@ -50,58 +50,97 @@ const OTPScreen = ({ navigation }: OTPScreenProps) => {
     focusNext(index, text);
   };
 
-  const handleVerify = async () => { // Made function async
-    const enteredOtp = otp.join('');
-    const correctOtp = '1234'; // Hardcoded OTP for all roles for now
+  const handleVerify = async () => {
+    try {
+      console.log('=== VERIFY OTP START ===');
+      console.log('Mobile:', mobile);
+      console.log('OTP:', otp.join(''));
 
-    if (enteredOtp === correctOtp) {
-      setNotification({ message: 'OTP Verified! Redirecting to dashboard...', type: 'success', isVisible: true });
-      // Save the user token to AsyncStorage
-      try {
-        await AsyncStorage.setItem('userToken', 'dummy-user-token'); // Replace with actual token generation if needed
-      } catch (error) {
-        console.error('Error saving token to AsyncStorage', error);
-        setNotification({ message: 'Error saving login status.', type: 'error', isVisible: true });
-        return; // Stop execution if saving fails
+      const resp = await verifyOtp(mobile, otp.join(''));
+      console.log('Verify OTP Response:', resp);
+
+      if (resp.success) {
+        setNotification({ message: 'OTP Verified! Redirecting to dashboard...', type: 'success', isVisible: true });
+        try {
+          const token = resp.tokens.accessToken;
+          await AsyncStorage.setItem('userToken', token);
+        } catch (error) {
+          console.error('Error saving token to AsyncStorage', error);
+          setNotification({ message: 'Error saving login status.', type: 'error', isVisible: true });
+          return;
+        }
+
+        let destinationScreen = 'MainApp';
+        let userRole = 'user';
+        if (resp.user.isTrainer) {
+          destinationScreen = 'TrainerDashboard';
+          userRole = 'trainer';
+        } else if (resp.user.isAdmin) {
+          destinationScreen = 'OwnerDashboard';
+          userRole = 'owner';
+        }
+        try {
+          await AsyncStorage.setItem('userRole', userRole);
+        } catch (error) {
+          console.error('Error saving user role to AsyncStorage', error);
+          setNotification({ message: 'Error saving user role.', type: 'error', isVisible: true });
+          return;
+        }
+
+        setTimeout(() => {
+          navigation.replace(destinationScreen);
+        }, 1000);
+      } else if (resp && resp.error) {
+        console.error('OTP Verification Error:', resp.error);
+        setNotification({ message: resp.error, type: 'error', isVisible: true });
+      } else {
+        console.error('Unexpected response format:', resp);
+        setNotification({ message: 'Incorrect OTP. Please try again.', type: 'error', isVisible: true });
       }
-
-      let destinationScreen = 'MainApp'; // Default for user
-      let userRole = 'user'; // Default role
-
-      // Simulate user type based on mobile number for demonstration
-      if (mobile === '2222222222') {
-        destinationScreen = 'TrainerDashboard';
-        userRole = 'trainer';
-      } else if (mobile === '3333333333') {
-        destinationScreen = 'OwnerDashboard';
-        userRole = 'owner';
-      }
-      // For any other mobile number, it will default to 'MainApp' (user)
-
-      // Store the user role in AsyncStorage
-      try {
-        await AsyncStorage.setItem('userRole', userRole);
-      } catch (error) {
-        console.error('Error saving user role to AsyncStorage', error);
-        setNotification({ message: 'Error saving user role.', type: 'error', isVisible: true });
-        return;
-      }
-
-      setTimeout(() => {
-        navigation.replace(destinationScreen); // Navigate to respective screen
-      }, 1000);
-    } else {
-      setNotification({ message: 'Incorrect OTP. Please try again.', type: 'error', isVisible: true });
-      // No navigation on failure, stay on OTP screen
+    } catch (error) {
+      console.error('=== VERIFY OTP EXCEPTION ===');
+      console.error('Error:', error);
+      setNotification({ message: 'Error verifying OTP. Please try again later.', type: 'error', isVisible: true });
     }
   };
 
-  const handleNext = () => {
+  const handleNext = async () => {
     if (mobile.length === 10) {
-      setShowOtpSection(true);
-      setNotification({ message: 'OTP sent to your mobile number.', type: 'info', isVisible: true });
+      try {
+        console.log('=== SEND OTP START ===');
+        console.log('Mobile number:', mobile);
+
+        const resp = await sendOtp(mobile);
+        console.log('=== SEND OTP RESPONSE ===');
+        console.log('Response:', JSON.stringify(resp, null, 2));
+
+        if (resp && resp.error) {
+          console.error('OTP Send Error:', resp.error);
+          setNotification({ message: resp.error, type: 'error', isVisible: true });
+          setShowOtpSection(false);
+          return;
+        }
+
+        if (resp && resp.success) {
+          console.log('OTP sent successfully');
+          setShowOtpSection(true);
+          setNotification({ message: 'OTP sent to your mobile number.', type: 'success', isVisible: true });
+        } else {
+          console.error('Unexpected response format:', resp);
+          setNotification({ message: 'Failed to send OTP. Please try again.', type: 'error', isVisible: true });
+          setShowOtpSection(false);
+        }
+      } catch (error) {
+        console.error('=== SEND OTP EXCEPTION ===');
+        console.error('Error:', error);
+        setNotification({ message: 'Error sending OTP. Please try again.', type: 'error', isVisible: true });
+        setShowOtpSection(false);
+      }
+    } else {
+      console.log('Invalid mobile number length:', mobile.length);
+      setNotification({ message: 'Please enter a valid 10-digit mobile number.', type: 'error', isVisible: true });
     }
-  };
+  }
 
   const closeNotification = () => {
     setNotification((prev) => ({ ...prev, isVisible: false }));
