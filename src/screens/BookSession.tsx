@@ -1,9 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, TouchableOpacity, ScrollView, Modal, Dimensions } from 'react-native';
+import { View, Text, TouchableOpacity, ScrollView, Modal, Dimensions, Alert } from 'react-native';
 import { Calendar } from 'react-native-calendars';
 import { colors } from '../theme/colors';
 import { AppStyles } from '../styles/AppStyles'; // Import AppStyles
 import Icon from 'react-native-vector-icons/FontAwesome';
+import apiConfig from '../api/apiConfig';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { bookSession } from '../api';
 
 const { width } = Dimensions.get('window');
 
@@ -106,27 +109,70 @@ const BookSession = () => {
     }
   };
 
-  const handleFinalBooking = () => {
+  const handleFinalBooking = async () => {
     if (selectedDate && selectedSlot) {
-      const bookingTimestamp = new Date(`${selectedDate}T${selectedSlot}:00`).getTime();
-      const newBooking: Booking = {
-        id: Date.now().toString() + Math.random().toString(36).substring(2, 9), // Simple unique ID
-        date: selectedDate,
-        time: selectedSlot,
-        timestamp: bookingTimestamp,
-      };
-      setBookings(prev => [...prev, newBooking]); // Add the new booking
+      try {
+        const bookingTimestamp = new Date(`${selectedDate}T${selectedSlot}:00`).getTime();
 
-      setBookingConfirmed(true);
-      setShowConfirmationModal(false); // Hide the "Are you sure?" modal
+        // Get userId from AsyncStorage
+        const userId = await AsyncStorage.getItem('userId');
 
-      // Reset states after a delay
-      setTimeout(() => {
-        setBookingConfirmed(false);
-        setSelectedDate(null); // Deselect the date after confirmation
-        setSelectedSlot(null);
-        setNumberOfSlots(1); // Reset slot count
-      }, 3000);
+        console.log('User ID from AsyncStorage:', userId);
+
+
+        if (!userId) {
+          Alert.alert('Error', 'User not logged in. Please log in again.');
+          setShowConfirmationModal(false);
+          return;
+        }
+
+        // Prepare the payload for the API
+        const payload = {
+          personCount: numberOfSlots,
+          startingTime: selectedSlot,
+          date: selectedDate,
+          userId: userId,
+          users: [userId], // Add the logged-in user's ID to the users array
+          trainerId: null, // Can be set if trainer is selected
+          endTime: null, // Can be calculated or set by the backend
+          notes: '' // Optional notes
+        };
+
+        // Make the API call to create the session
+        const response = await bookSession(payload);
+        console.log('Booking API Response:', response);
+        // Check if there was an error in the response
+        if (response.error) {
+          Alert.alert('Booking Failed', response.error);
+          setShowConfirmationModal(false);
+          return;
+        }
+
+        // If successful, add the booking to local state
+        const newBooking: Booking = {
+          id: response.data?.id || Date.now().toString() + Math.random().toString(36).substring(2, 9),
+          date: selectedDate,
+          time: selectedSlot,
+          timestamp: bookingTimestamp,
+        };
+        setBookings(prev => [...prev, newBooking]);
+
+        setBookingConfirmed(true);
+        setShowConfirmationModal(false);
+
+        // Reset states after a delay
+        setTimeout(() => {
+          setBookingConfirmed(false);
+          setSelectedDate(null);
+          setSelectedSlot(null);
+          setNumberOfSlots(1);
+        }, 3000);
+
+      } catch (error) {
+        console.error('Error creating booking:', error);
+        Alert.alert('Error', 'Failed to create booking. Please try again.');
+        setShowConfirmationModal(false);
+      }
     }
   };
 

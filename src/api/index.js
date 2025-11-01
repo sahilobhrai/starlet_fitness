@@ -12,3 +12,7 @@ export const resendOtp = (phoneNumber) => {
 export const verifyOtp = (phoneNumber, otp) => {
     return apiConfig.postApiUrl(API_URLS.VERIFY_OTP, { phoneNumber, otp });
 }
+
+export const bookSession = (sessionData, isAuth = true) => {
+    return apiConfig.postApiUrl(API_URLS.BOOK_SESSION, sessionData, isAuth);
+}

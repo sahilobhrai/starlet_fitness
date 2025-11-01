@@ -62,8 +62,14 @@ const OTPScreen = ({ navigation }: OTPScreenProps) => {
       if (resp.success) {
         setNotification({ message: 'OTP Verified! Redirecting to dashboard...', type: 'success', isVisible: true });
         try {
+
           const token = resp.tokens.accessToken;
+          console.log('Storing user token in AsyncStorage:', token);
           await AsyncStorage.setItem('userToken', token);
+          // Save userId for session booking
+          console.log("whole data is ", resp.user);
+          console.log('Storing user ID in AsyncStorage:', resp.user.id);
+          await AsyncStorage.setItem('userId', String(resp.user.id));
         } catch (error) {
           console.error('Error saving token to AsyncStorage', error);
           setNotification({ message: 'Error saving login status.', type: 'error', isVisible: true });

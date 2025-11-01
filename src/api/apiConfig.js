@@ -58,7 +58,7 @@ const postApiUrl = async (url, payload, isAuth = false) => {
 
         let accessToken = null;
         if (isAuth) {
-            accessToken = await AsyncStorage.getItem('accessToken');
+            accessToken = await AsyncStorage.getItem('userToken');
             console.log('Access Token:', accessToken ? 'Found' : 'Not found');
             if (accessToken) {
                 payload.token = accessToken;
@@ -120,7 +120,7 @@ const putApiUrl = async (url, id, payload, isAuth = false) => {
         console.log('=== PUT API CALL START ===');
         let accessToken = null;
         if (isAuth) {
-            accessToken = await AsyncStorage.getItem('accessToken');
+            accessToken = await AsyncStorage.getItem('userToken');
             if (accessToken) {
                 payload.token = accessToken;
             }
@@ -166,7 +166,7 @@ const deleteApiUrl = async (url, id, isAuth = false) => {
         console.log('=== DELETE API CALL START ===');
         let accessToken = null;
         if (isAuth) {
-            accessToken = await AsyncStorage.getItem('accessToken');
+            accessToken = await AsyncStorage.getItem('userToken');
         }
 
         const baseUrl = BASE_URL + url;
