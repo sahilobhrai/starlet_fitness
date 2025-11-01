@@ -6,7 +6,7 @@ import { AppStyles } from '../styles/AppStyles'; // Import AppStyles
 import Icon from 'react-native-vector-icons/FontAwesome';
 import apiConfig from '../api/apiConfig';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { bookSession } from '../api';
+import { bookSession, getSessionsByDate } from '../api';
 
 const { width } = Dimensions.get('window');
 
@@ -35,6 +35,20 @@ interface Booking {
   timestamp: number; // Unix timestamp in milliseconds
 }
 
+// Define the interface for a session from backend
+interface Session {
+  id: number;
+  sessionId: string;
+  personCount: number;
+  startingTime: string;
+  date: string;
+  users: number[];
+  status: string;
+  trainerId: number | null;
+  endTime: string | null;
+  notes: string | null;
+}
+
 const BookSession = () => {
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
   const [bookings, setBookings] = useState<Booking[]>([]); // State to store detailed bookings
@@ -45,7 +59,33 @@ const BookSession = () => {
   const [selectedBookingToCancel, setSelectedBookingToCancel] = useState<Booking | null>(null); // State to hold the booking to be cancelled
   const [showCancelConfirmModal, setShowCancelConfirmModal] = useState<boolean>(false); // For the "Are you sure?" modal for cancellation
   const [numberOfSlots, setNumberOfSlots] = useState<number>(1); // Default to 1 slot
+  const [sessionsForDate, setSessionsForDate] = useState<Session[]>([]); // State to store sessions from backend for selected date
 
+  // Fetch sessions when date is selected
+  useEffect(() => {
+    const fetchSessionsForDate = async () => {
+      if (selectedDate) {
+        try {
+          const response = await getSessionsByDate(selectedDate);
+
+          if (response.error) {
+            console.error('Error fetching sessions:', response.error);
+            setSessionsForDate([]);
+          } else {
+            console.log('Fetched sessions for date:', response.data);
+            setSessionsForDate(response.data || []);
+          }
+        } catch (error) {
+          console.error('Error fetching sessions:', error);
+          setSessionsForDate([]);
+        }
+      }
+    };
+
+    fetchSessionsForDate();
+  }, [selectedDate]);
+
+  // Generate time slots when date or sessions change
   useEffect(() => {
     if (selectedDate) {
       setTimeSlots(generateTimeSlots());
@@ -54,7 +94,7 @@ const BookSession = () => {
       setShowConfirmationModal(false); // Reset intermediate confirmation
       setNumberOfSlots(1); // Reset slot count
     }
-  }, [selectedDate]);
+  }, [selectedDate, sessionsForDate]);
 
   // Effect to reset cancellation states when date changes or a new booking is made
   useEffect(() => {
@@ -64,7 +104,7 @@ const BookSession = () => {
 
   const generateTimeSlots = () => {
     const slots: TimeSlot[] = [];
-    const selectedDateObj = new Date(selectedDate || todayString);
+    const MAX_SLOTS_PER_TIME = 2; // Maximum number of people that can book the same time slot
 
     for (let hour = 9; hour <= 20; hour++) {
       for (let minute = 0; minute < 60; minute += 30) {
@@ -77,15 +117,21 @@ const BookSession = () => {
         if (slotDateTime.getTime() <= now.getTime()) {
           slotsAvailable = 0; // Mark as unavailable if it's in the past
         } else {
-          // For future slots, simulate availability
-          const random = Math.random();
-          if (random < 0.3) { // ~30% chance of 0 slots (booked)
-            slotsAvailable = 0;
-          } else if (random < 0.7) { // ~40% chance of 1 slot
-            slotsAvailable = 1;
-          } else { // ~30% chance of 2 slots
-            slotsAvailable = 2;
-          }
+          // Calculate availability based on real session data from backend
+          // Find all sessions for this time slot
+          const sessionsAtThisTime = sessionsForDate.filter(session => {
+            // Compare time strings (backend returns time in HH:MM:SS format, we need to match HH:MM)
+            const sessionTime = session.startingTime.substring(0, 5); // Extract HH:MM from HH:MM:SS
+            return sessionTime === time;
+          });
+
+          // Sum up the personCount from all sessions at this time
+          const totalBookedSlots = sessionsAtThisTime.reduce((sum, session) => {
+            return sum + session.personCount;
+          }, 0);
+
+          // Calculate available slots
+          slotsAvailable = Math.max(0, MAX_SLOTS_PER_TIME - totalBookedSlots);
         }
         slots.push({ time, slotsAvailable });
       }
@@ -156,6 +202,12 @@ const BookSession = () => {
           timestamp: bookingTimestamp,
         };
         setBookings(prev => [...prev, newBooking]);
+
+        // Refresh sessions for the selected date to update availability
+        const refreshedSessions = await getSessionsByDate(selectedDate);
+        if (!refreshedSessions.error && refreshedSessions.data) {
+          setSessionsForDate(refreshedSessions.data);
+        }
 
         setBookingConfirmed(true);
         setShowConfirmationModal(false);

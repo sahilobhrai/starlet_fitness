@@ -18,18 +18,31 @@ console.log('=== API CONFIG ===');
 console.log('Platform:', Platform.OS);
 console.log('Base URL:', BASE_URL);
 
-const getApiUrl = async (url, id) => {
+const getApiUrl = async (url, id, isAuth = false) => {
     try {
         console.log('=== GET API CALL START ===');
         const baseUrl = BASE_URL + url;
         const fullUrl = id ? `${baseUrl}/${id}` : baseUrl;
         console.log('Full URL:', fullUrl);
 
+        let accessToken = null;
+        const headers = {
+            'Content-Type': 'application/json',
+        };
+
+        if (isAuth) {
+            accessToken = await AsyncStorage.getItem('userToken');
+            console.log('Access Token:', accessToken ? 'Found' : 'Not found');
+            if (accessToken) {
+                headers['Authorization'] = `Bearer ${accessToken}`;
+            }
+        }
+
+        console.log('Request Headers:', JSON.stringify(headers, null, 2));
+
         const response = await fetch(fullUrl, {
             method: 'GET',
-            headers: {
-                'Content-Type': 'application/json',
-            },
+            headers: headers,
         });
 
         console.log('Response Status:', response.status);

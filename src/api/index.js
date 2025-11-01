@@ -16,3 +16,7 @@ export const verifyOtp = (phoneNumber, otp) => {
 export const bookSession = (sessionData, isAuth = true) => {
     return apiConfig.postApiUrl(API_URLS.BOOK_SESSION, sessionData, isAuth);
 }
+
+export const getSessionsByDate = (date) => {
+    return apiConfig.getApiUrl(API_URLS.GET_SESSIONS_BY_DATE + date, null, true);
+}
