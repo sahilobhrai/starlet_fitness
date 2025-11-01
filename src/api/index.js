@@ -20,3 +20,7 @@ export const bookSession = (sessionData, isAuth = true) => {
 export const getSessionsByDate = (date) => {
     return apiConfig.getApiUrl(API_URLS.GET_SESSIONS_BY_DATE + date, null, true);
 }
+
+export const getUserById = (userId) => {
+    return apiConfig.getApiUrl(API_URLS.GET_USER_BY_ID + userId, null, true);
+}

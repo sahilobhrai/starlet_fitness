@@ -1,8 +1,10 @@
-import React, { useState } from 'react';
-import { View, Text, TouchableOpacity, Modal, Image, ScrollView, TextInput, Alert } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { View, Text, TouchableOpacity, Modal, Image, ScrollView, TextInput, Alert, ActivityIndicator } from 'react-native';
 import Icon from 'react-native-vector-icons/FontAwesome';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { colors } from '../theme/colors';
 import { AppStyles } from '../styles/AppStyles';
+import { getUserById } from '../api';
 
 // Profile Screen Component
 interface ProfileScreenProps {
@@ -11,40 +13,131 @@ interface ProfileScreenProps {
 
 const ProfileScreen = ({ navigation }: ProfileScreenProps) => {
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [userId, setUserId] = useState<string | null>(null);
 
   // User data state
   const [userDetails, setUserDetails] = useState({
-    name: 'John Doe',
-    mobileNumber: '9876543210',
-    height: '175 cm',
-    weight: '70 kg',
+    name: '',
+    mobileNumber: '',
+    height: '',
+    weight: '',
   });
 
   const [measurements, setMeasurements] = useState({
-    chest: '95 cm',
-    upperWaist: '80 cm',
-    midWaist: '78 cm',
-    lowerWaist: '82 cm',
-    rightThigh: '55 cm',
-    leftThigh: '55 cm',
-    rightArm: '30 cm',
-    leftArm: '30 cm',
+    chest: '',
+    upperWaist: '',
+    midWaist: '',
+    lowerWaist: '',
+    rightThigh: '',
+    leftThigh: '',
+    rightArm: '',
+    leftArm: '',
   });
 
   const [bca, setBca] = useState({
-    weight: '70 kg',
-    bmi: '22.86',
-    bodyFat: '18%',
-    muscleRate: '40%',
-    subcutaneousFat: '15%',
-    visceralFat: '8',
-    bodyAge: '28',
-    bmr: '1600 kcal',
-    skeletalMass: '25 kg',
-    muscleMass: '28 kg',
-    boneMass: '3 kg',
-    protein: '18%',
+    weight: '',
+    bmi: '',
+    bodyFat: '',
+    muscleRate: '',
+    subcutaneousFat: '',
+    visceralFat: '',
+    bodyAge: '',
+    bmr: '',
+    skeletalMass: '',
+    muscleMass: '',
+    boneMass: '',
+    protein: '',
   });
+
+  // Fetch user data on component mount
+  useEffect(() => {
+    const fetchUserData = async () => {
+      try {
+        console.log('🔄 ProfileScreen: Fetching user data...');
+
+        // Get userId from AsyncStorage
+        const storedUserId = await AsyncStorage.getItem('userId');
+        console.log('📦 Stored User ID:', storedUserId);
+
+        if (!storedUserId) {
+          Alert.alert('Error', 'User not logged in. Please log in again.');
+          navigation.reset({
+            index: 0,
+            routes: [{ name: 'OTP' }],
+          });
+          return;
+        }
+
+        setUserId(storedUserId);
+
+        // Fetch user data from backend
+        console.log('🌐 Calling getUserById API...');
+        const response = await getUserById(storedUserId);
+        console.log('✅ User Data Response:', JSON.stringify(response, null, 2));
+
+        if (response.error) {
+          console.error('❌ API Error:', response.error);
+          Alert.alert('Error', response.error);
+          setLoading(false);
+          return;
+        }
+
+        if (response.success && response.data) {
+          console.log('✅ Processing user data...');
+          const user = response.data;
+
+          // Update user details
+          setUserDetails({
+            name: user.name || '',
+            mobileNumber: user.mobileNumber || user.phoneNumber || '',
+            height: user.height ? `${user.height} cm` : '',
+            weight: user.weight ? `${user.weight} kg` : '',
+          });
+
+          // Update measurements
+          setMeasurements({
+            chest: user.measurements_chest ? `${user.measurements_chest} cm` : '',
+            upperWaist: user.measurements_upperWaist ? `${user.measurements_upperWaist} cm` : '',
+            midWaist: user.measurements_midWaist ? `${user.measurements_midWaist} cm` : '',
+            lowerWaist: user.measurements_lowerWaist ? `${user.measurements_lowerWaist} cm` : '',
+            rightThigh: user.measurements_rightThigh ? `${user.measurements_rightThigh} cm` : '',
+            leftThigh: user.measurements_leftThigh ? `${user.measurements_leftThigh} cm` : '',
+            rightArm: user.measurements_rightArm ? `${user.measurements_rightArm} cm` : '',
+            leftArm: user.measurements_leftArm ? `${user.measurements_leftArm} cm` : '',
+          });
+
+          // Update BCA data
+          setBca({
+            weight: user.bca_weight ? `${user.bca_weight} kg` : '',
+            bmi: user.bca_bmi ? `${user.bca_bmi}` : '',
+            bodyFat: user.bca_bodyFat ? `${user.bca_bodyFat}%` : '',
+            muscleRate: user.bca_muscleRate ? `${user.bca_muscleRate}%` : '',
+            subcutaneousFat: user.bca_subcutaneousFat ? `${user.bca_subcutaneousFat}%` : '',
+            visceralFat: user.bca_visceralFat ? `${user.bca_visceralFat}` : '',
+            bodyAge: user.bca_bodyAge ? `${user.bca_bodyAge}` : '',
+            bmr: user.bca_bmr ? `${user.bca_bmr} kcal` : '',
+            skeletalMass: user.bca_skeletalMass ? `${user.bca_skeletalMass} kg` : '',
+            muscleMass: user.bca_muscleMass ? `${user.bca_muscleMass} kg` : '',
+            boneMass: user.bca_boneMass ? `${user.bca_boneMass} kg` : '',
+            protein: user.bca_protein ? `${user.bca_protein}%` : '',
+          });
+
+          console.log('✅ User data loaded successfully!');
+          console.log('📊 Name:', user.name);
+          console.log('📧 Email:', user.email);
+        }
+
+        setLoading(false);
+      } catch (error) {
+        console.error('Error fetching user data:', error);
+        Alert.alert('Error', 'Failed to load user data. Please try again.');
+        setLoading(false);
+      }
+    };
+
+    fetchUserData();
+  }, [navigation]);
 
   const handleLogout = () => {
     setShowLogoutConfirm(true);
@@ -104,6 +197,16 @@ const ProfileScreen = ({ navigation }: ProfileScreenProps) => {
     </View>
   );
 
+  // Show loading indicator while fetching data
+  if (loading) {
+    return (
+      <View style={[AppStyles.profileContainer, { justifyContent: 'center', alignItems: 'center' }]}>
+        <ActivityIndicator size="large" color={colors.red} />
+        <Text style={{ color: colors.lightGray, marginTop: 10 }}>Loading profile...</Text>
+      </View>
+    );
+  }
+
   return (
     <ScrollView style={AppStyles.profileContainer} showsVerticalScrollIndicator={false}>
       {/* Modern Header Section */}
@@ -116,21 +219,21 @@ const ProfileScreen = ({ navigation }: ProfileScreenProps) => {
             </TouchableOpacity>
           </View>
         </View>
-        <Text style={AppStyles.profileName}>{userDetails.name}</Text>
+        <Text style={AppStyles.profileName}>{userDetails.name || 'Guest User'}</Text>
         <Text style={AppStyles.profileSubtitle}>Fitness Enthusiast</Text>
         <View style={AppStyles.profileStats}>
           <View style={AppStyles.statItem}>
-            <Text style={AppStyles.statValue}>{userDetails.weight}</Text>
+            <Text style={AppStyles.statValue}>{userDetails.weight || 'N/A'}</Text>
             <Text style={AppStyles.statLabel}>Weight</Text>
           </View>
           <View style={AppStyles.statDivider} />
           <View style={AppStyles.statItem}>
-            <Text style={AppStyles.statValue}>{userDetails.height}</Text>
+            <Text style={AppStyles.statValue}>{userDetails.height || 'N/A'}</Text>
             <Text style={AppStyles.statLabel}>Height</Text>
           </View>
           <View style={AppStyles.statDivider} />
           <View style={AppStyles.statItem}>
-            <Text style={AppStyles.statValue}>{bca.bmi}</Text>
+            <Text style={AppStyles.statValue}>{bca.bmi || 'N/A'}</Text>
             <Text style={AppStyles.statLabel}>BMI</Text>
           </View>
         </View>

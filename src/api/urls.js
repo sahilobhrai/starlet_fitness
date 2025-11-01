@@ -6,4 +6,5 @@ export const API_URLS = {
     VERIFY_OTP: '/api/otp/verify',
     BOOK_SESSION: '/api/sessions',
     GET_SESSIONS_BY_DATE: '/api/sessions/date/',
+    GET_USER_BY_ID: '/api/users/',
 }
