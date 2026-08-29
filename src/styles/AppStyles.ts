@@ -292,6 +292,13 @@ export const AppStyles = StyleSheet.create({
     fontWeight: 'bold',
     letterSpacing: 1
   },
+  buttonDisabled: {
+    opacity: 0.6,
+  },
+  resendTimerText: {
+    color: colors.mediumGray,
+    fontWeight: 'bold',
+  },
 
   // MainAppContent Styles
   safeArea: {

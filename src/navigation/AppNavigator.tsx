@@ -9,6 +9,7 @@ import { colors } from '../theme/colors'; // Import colors
 import SplashScreen from '../screens/SplashScreen';
 import IntroductionScreen from '../screens/IntroductionScreen';
 import OTPScreen from '../screens/OTPScreen';
+import MembershipFormScreen from '../screens/MembershipFormScreen';
 import MainAppContent from '../screens/MainAppContent';
 import ProfileScreen from '../screens/ProfileScreen';
 import HelpScreen from '../screens/HelpScreen';
@@ -20,18 +21,9 @@ import TermsOfServiceScreen from '../screens/TermsOfServiceScreen';
 import TrainerDashboardScreen from '../screens/TrainerDashboardScreen';
 import AssignedSessionsScreen from '../screens/AssignedSessionsScreen';
 import UpcomingBookingsScreen from '../screens/UpcomingBookingsScreen';
-import OwnerDashboardScreen from '../screens/OwnerDashboardScreen';
 import SessionHistoryScreen from '../screens/SessionHistoryScreen'; // Import SessionHistoryScreen
 import EarningsAndPayoutsScreen from '../screens/EarningsAndPayoutsScreen'; // Import EarningsAndPayoutsScreen
-
-// Import newly created screens
-import DashboardScreen from '../screens/DashboardScreen';
-import ManageBranchesScreen from '../screens/ManageBranchesScreen';
-import ManageTrainersScreen from '../screens/ManageTrainersScreen';
-import ManageCustomersScreen from '../screens/ManageCustomersScreen';
-import ReportsScreen from '../screens/ReportsScreen';
-import InvoicesScreen from '../screens/InvoicesScreen';
-import AnnouncementsScreen from '../screens/AnnouncementsScreen';
+import QRScannerScreen from '../screens/QRScannerScreen';
 
 
 const Stack = createNativeStackNavigator();
@@ -47,19 +39,22 @@ const AppNavigator = () => {
         const userToken = await AsyncStorage.getItem('userToken');
         const userRole = await AsyncStorage.getItem('userRole'); // Retrieve user role
 
-        if (userToken) {
+        if (userToken && userRole === 'owner') {
+          // Owner/Manager accounts no longer have app access - manage via the Django admin portal instead
+          await AsyncStorage.multiRemove(['userToken', 'userId', 'userData', 'userRole', 'userBranch']);
+          setInitialRoute('Intro');
+        } else if (userToken) {
           // User is authenticated, determine initial route based on role
           if (userRole === 'trainer') {
             setInitialRoute('TrainerDashboard');
-          } else if (userRole === 'owner') {
-            setInitialRoute('OwnerDashboard');
           } else {
-            // Default to MainApp for regular users or if role is not specified
-            setInitialRoute('MainApp');
+            // Customers must accept the membership form once before reaching MainApp
+            const membershipFormAccepted = await AsyncStorage.getItem('membershipFormAccepted');
+            setInitialRoute(membershipFormAccepted ? 'MainApp' : 'MembershipForm');
           }
         } else {
-          // Not authenticated, go to Intro screen
-          setInitialRoute('Intro');
+          // TEMP: skip login and land on MainApp directly during dev. Revert to 'Intro' to restore the login flow.
+          setInitialRoute('MainApp');
         }
       } catch (error) {
         console.error('Error reading token or role from AsyncStorage', error);
@@ -96,6 +91,7 @@ const AppNavigator = () => {
         <Stack.Screen name="Splash" component={SplashScreen} />
         <Stack.Screen name="Intro" component={IntroductionScreen} />
         <Stack.Screen name="OTP" component={OTPScreen} />
+        <Stack.Screen name="MembershipForm" component={MembershipFormScreen} />
         <Stack.Screen name="MainApp" component={MainAppContent} />
         <Stack.Screen name="Profile" component={ProfileScreen} />
         <Stack.Screen name="Help" component={HelpScreen} />
@@ -107,19 +103,9 @@ const AppNavigator = () => {
         <Stack.Screen name="TrainerDashboard" component={TrainerDashboardScreen} />
         <Stack.Screen name="AssignedSessions" component={AssignedSessionsScreen} />
         <Stack.Screen name="UpcomingBookings" component={UpcomingBookingsScreen} />
-        <Stack.Screen name="OwnerDashboard" component={OwnerDashboardScreen} />
         <Stack.Screen name="SessionHistory" component={SessionHistoryScreen} />
         <Stack.Screen name="EarningsAndPayouts" component={EarningsAndPayoutsScreen} />
-
-        {/* Add new screens to the navigator */}
-        <Stack.Screen name="Dashboard" component={DashboardScreen} />
-        <Stack.Screen name="ManageBranches" component={ManageBranchesScreen} />
-        <Stack.Screen name="ManageTrainers" component={ManageTrainersScreen} />
-        <Stack.Screen name="ManageCustomers" component={ManageCustomersScreen} />
-        <Stack.Screen name="Reports" component={ReportsScreen} />
-        <Stack.Screen name="Invoices" component={InvoicesScreen} />
-        <Stack.Screen name="Announcements" component={AnnouncementsScreen} />
-
+        <Stack.Screen name="QRScanner" component={QRScannerScreen} />
       </Stack.Navigator>
     </NavigationContainer>
   );

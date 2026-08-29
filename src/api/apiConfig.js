@@ -1,16 +1,26 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Platform } from 'react-native';
 
-// For Android emulator, use 10.0.2.2 instead of localhost
+// API URL Configuration
+// For Android emulator: use 10.0.2.2
+// For physical device: use your computer's IP address (run 'ipconfig' to find it)
+// Example: "http://192.168.1.100:8000"
+
+const PHYSICAL_DEVICE_IP = "192.168.1.100"; // <-- CHANGE THIS to your computer's IP
+const USE_PHYSICAL_DEVICE = false; // <-- Set to true if testing on physical device
+
 const getLocalApiUrl = () => {
-    if (Platform.OS === 'android') {
-        return "http://10.0.2.2:4000";
+    if (USE_PHYSICAL_DEVICE) {
+        return `http://${PHYSICAL_DEVICE_IP}:8000`;
     }
-    return "http://localhost:4000";
+    if (Platform.OS === 'android') {
+        return "http://10.0.2.2:8000";
+    }
+    return "http://localhost:8000";
 };
 
 const LOCAL_API_URL = getLocalApiUrl();
-const PRODUCTION_API_URL = "https://external-api-url.com";
+const PRODUCTION_API_URL = "http://ec2-13-201-77-181.ap-south-1.compute.amazonaws.com";
 const IS_PRODUCTION = false;
 const BASE_URL = IS_PRODUCTION ? PRODUCTION_API_URL : LOCAL_API_URL;
 

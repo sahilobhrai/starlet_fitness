@@ -1,25 +1,44 @@
-import React, { useState, useEffect } from 'react';
-import { View, Text, TouchableOpacity, ScrollView, Modal, Dimensions, Alert } from 'react-native';
+import React, { useState, useEffect, useRef } from 'react';
+import { View, Text, TouchableOpacity, ScrollView, Modal, Dimensions, Alert, ActivityIndicator } from 'react-native';
 import { Calendar } from 'react-native-calendars';
+import QRCode from 'react-native-qrcode-svg';
 import { colors } from '../theme/colors';
-import { AppStyles } from '../styles/AppStyles'; // Import AppStyles
+import { AppStyles } from '../styles/AppStyles';
 import Icon from 'react-native-vector-icons/FontAwesome';
-import apiConfig from '../api/apiConfig';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { bookSession, getSessionsByDate } from '../api';
+import { getClientAvailableSlots, bookSession, cancelSession, getClientSessions, generateSessionQR } from '../api';
+
+// Keep in sync with QR_WINDOW_BEFORE / QR_WINDOW_AFTER in the backend (startlet/views.py)
+const QR_WINDOW_BEFORE_MS = 15 * 60 * 1000;
+const QR_WINDOW_AFTER_MS = 90 * 60 * 1000;
+const QR_REFRESH_INTERVAL_MS = 80 * 1000; // refresh before the backend's 120s token expiry
 
 const { width } = Dimensions.get('window');
 
-// Define the current time for filtering slots
 const now = new Date();
 const todayString = now.toISOString().split('T')[0];
 
-interface TimeSlot {
-  time: string;
-  slotsAvailable: number; // 0: Booked, 1: One slot available, 2: Two slots available
+interface BackendSlot {
+  id: number;
+  branch: number;
+  branch_name: string;
+  date: string;
+  start_time: string;
+  end_time: string;
+  status: string;
+  booked_by: number | null;
+  booked_by_name: string | null;
+  created_at: string;
 }
 
-// Define the interface for calendar markings
+interface TimeSlot {
+  id: number;
+  time: string;
+  endTime: string;
+  status: string;
+  isAvailable: boolean;
+}
+
 interface CalendarMarking {
   selected?: boolean;
   marked?: boolean;
@@ -27,264 +46,278 @@ interface CalendarMarking {
   dotColor?: string;
 }
 
-// Define the interface for a booking
-interface Booking {
-  id: string;
+interface BookedSession {
+  id: number;
   date: string;
   time: string;
-  timestamp: number; // Unix timestamp in milliseconds
-}
-
-// Define the interface for a session from backend
-interface Session {
-  id: number;
-  sessionId: string;
-  personCount: number;
-  startingTime: string;
-  date: string;
-  users: number[];
   status: string;
-  trainerId: number | null;
-  endTime: string | null;
-  notes: string | null;
+  trainer_name: string | null;
 }
 
 const BookSession = () => {
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
-  const [bookings, setBookings] = useState<Booking[]>([]); // State to store detailed bookings
   const [timeSlots, setTimeSlots] = useState<TimeSlot[]>([]);
-  const [selectedSlot, setSelectedSlot] = useState<string | null>(null);
-  const [bookingConfirmed, setBookingConfirmed] = useState<boolean>(false); // For the final "BOOKING CONFIRMED!" modal
-  const [showConfirmationModal, setShowConfirmationModal] = useState<boolean>(false); // For the "Are you sure?" modal for booking
-  const [selectedBookingToCancel, setSelectedBookingToCancel] = useState<Booking | null>(null); // State to hold the booking to be cancelled
-  const [showCancelConfirmModal, setShowCancelConfirmModal] = useState<boolean>(false); // For the "Are you sure?" modal for cancellation
-  const [numberOfSlots, setNumberOfSlots] = useState<number>(1); // Default to 1 slot
-  const [sessionsForDate, setSessionsForDate] = useState<Session[]>([]); // State to store sessions from backend for selected date
+  const [selectedSlot, setSelectedSlot] = useState<TimeSlot | null>(null);
+  const [bookingConfirmed, setBookingConfirmed] = useState<boolean>(false);
+  const [showConfirmationModal, setShowConfirmationModal] = useState<boolean>(false);
+  const [showCancelConfirmModal, setShowCancelConfirmModal] = useState<boolean>(false);
+  const [selectedSessionToCancel, setSelectedSessionToCancel] = useState<BookedSession | null>(null);
+  const [myBookings, setMyBookings] = useState<BookedSession[]>([]);
+  const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [isDayOff, setIsDayOff] = useState<boolean>(false);
+  const [branchId, setBranchId] = useState<string | null>(null);
+  const [clientId, setClientId] = useState<string | null>(null);
+  const [qrModalVisible, setQrModalVisible] = useState<boolean>(false);
+  const [qrToken, setQrToken] = useState<string | null>(null);
+  const [qrLoading, setQrLoading] = useState<boolean>(false);
+  const [qrError, setQrError] = useState<string | null>(null);
+  const [qrBooking, setQrBooking] = useState<BookedSession | null>(null);
+  const qrRefreshTimer = useRef<ReturnType<typeof setInterval> | null>(null);
 
-  // Fetch sessions when date is selected
+  // Load user data on mount
   useEffect(() => {
-    const fetchSessionsForDate = async () => {
-      if (selectedDate) {
-        try {
-          const response = await getSessionsByDate(selectedDate);
+    const loadUserData = async () => {
+      const branch = await AsyncStorage.getItem('userBranch');
+      const userId = await AsyncStorage.getItem('userId');
+      setBranchId(branch);
+      setClientId(userId);
 
-          if (response.error) {
-            console.error('Error fetching sessions:', response.error);
-            setSessionsForDate([]);
-          } else {
-            console.log('Fetched sessions for date:', response.data);
-            setSessionsForDate(response.data || []);
-          }
-        } catch (error) {
-          console.error('Error fetching sessions:', error);
-          setSessionsForDate([]);
-        }
+      // Fetch user's booked sessions
+      if (userId) {
+        fetchMyBookings(userId);
       }
     };
+    loadUserData();
+  }, []);
 
-    fetchSessionsForDate();
-  }, [selectedDate]);
-
-  // Generate time slots when date or sessions change
-  useEffect(() => {
-    if (selectedDate) {
-      setTimeSlots(generateTimeSlots());
-      setSelectedSlot(null); // Reset selected slot when date changes
-      setBookingConfirmed(false); // Reset final confirmation
-      setShowConfirmationModal(false); // Reset intermediate confirmation
-      setNumberOfSlots(1); // Reset slot count
-    }
-  }, [selectedDate, sessionsForDate]);
-
-  // Effect to reset cancellation states when date changes or a new booking is made
-  useEffect(() => {
-    setSelectedBookingToCancel(null);
-    setShowCancelConfirmModal(false);
-  }, [selectedDate, bookings]); // Depend on bookings to reset if a booking is cancelled
-
-  const generateTimeSlots = () => {
-    const slots: TimeSlot[] = [];
-    const MAX_SLOTS_PER_TIME = 2; // Maximum number of people that can book the same time slot
-
-    for (let hour = 9; hour <= 20; hour++) {
-      for (let minute = 0; minute < 60; minute += 30) {
-        const time = `${hour}:${minute === 0 ? '00' : minute}`;
-        const slotDateTime = new Date(`${selectedDate}T${time}:00`);
-
-        let slotsAvailable = 0;
-
-        // Check if the slot is in the past relative to 'now'
-        if (slotDateTime.getTime() <= now.getTime()) {
-          slotsAvailable = 0; // Mark as unavailable if it's in the past
-        } else {
-          // Calculate availability based on real session data from backend
-          // Find all sessions for this time slot
-          const sessionsAtThisTime = sessionsForDate.filter(session => {
-            // Compare time strings (backend returns time in HH:MM:SS format, we need to match HH:MM)
-            const sessionTime = session.startingTime.substring(0, 5); // Extract HH:MM from HH:MM:SS
-            return sessionTime === time;
-          });
-
-          // Sum up the personCount from all sessions at this time
-          const totalBookedSlots = sessionsAtThisTime.reduce((sum, session) => {
-            return sum + session.personCount;
-          }, 0);
-
-          // Calculate available slots
-          slotsAvailable = Math.max(0, MAX_SLOTS_PER_TIME - totalBookedSlots);
-        }
-        slots.push({ time, slotsAvailable });
+  // Fetch user's bookings
+  const fetchMyBookings = async (userId: string) => {
+    try {
+      const response = await getClientSessions(userId);
+      if (response.code === '100' && response.sessions) {
+        const bookedSessions = response.sessions
+          .filter((s: any) => s.status === 'Scheduled' || s.status === 'In Progress')
+          .map((s: any) => ({
+            id: s.id,
+            date: s.session_date.split('T')[0],
+            time: s.session_date.split('T')[1]?.substring(0, 5) || '',
+            status: s.status,
+            trainer_name: s.trainer_name
+          }));
+        setMyBookings(bookedSessions);
       }
+    } catch (error) {
+      console.error('Error fetching bookings:', error);
     }
-    return slots;
+  };
+
+  // Fetch available slots when date is selected
+  useEffect(() => {
+    if (selectedDate && branchId) {
+      fetchAvailableSlots();
+    }
+  }, [selectedDate, branchId]);
+
+  const fetchAvailableSlots = async () => {
+    if (!branchId || !selectedDate) return;
+
+    setIsLoading(true);
+    try {
+      const response = await getClientAvailableSlots(branchId, selectedDate);
+      console.log('Available slots response:', response);
+
+      if (response.code === '100') {
+        setIsDayOff(response.is_day_off || false);
+
+        if (response.slots && response.slots.length > 0) {
+          const formattedSlots: TimeSlot[] = response.slots.map((slot: BackendSlot) => ({
+            id: slot.id,
+            time: slot.start_time.substring(0, 5), // HH:MM
+            endTime: slot.end_time.substring(0, 5),
+            status: slot.status,
+            isAvailable: slot.status === 'AVAILABLE'
+          }));
+          setTimeSlots(formattedSlots);
+        } else {
+          setTimeSlots([]);
+        }
+      } else {
+        setTimeSlots([]);
+      }
+    } catch (error) {
+      console.error('Error fetching slots:', error);
+      setTimeSlots([]);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const handleDateSelect = (day: { dateString: string }) => {
     setSelectedDate(day.dateString);
+    setSelectedSlot(null);
   };
 
   const handleSlotSelect = (slot: TimeSlot) => {
-    if (slot.slotsAvailable > 0) { // Only allow selection if slots are available
-      setSelectedSlot(slot.time);
+    if (slot.isAvailable) {
+      setSelectedSlot(slot);
     }
   };
 
   const handleConfirmBookingPress = () => {
     if (selectedDate && selectedSlot) {
-      setShowConfirmationModal(true); // Show the "Are you sure?" modal for booking
+      setShowConfirmationModal(true);
     }
   };
 
   const handleFinalBooking = async () => {
-    if (selectedDate && selectedSlot) {
-      try {
-        const bookingTimestamp = new Date(`${selectedDate}T${selectedSlot}:00`).getTime();
+    if (!selectedDate || !selectedSlot || !clientId) {
+      Alert.alert('Error', 'Missing required information');
+      return;
+    }
 
-        // Get userId from AsyncStorage
-        const userId = await AsyncStorage.getItem('userId');
+    setIsLoading(true);
+    try {
+      const response = await bookSession(clientId, selectedSlot.id, null, '');
+      console.log('Booking response:', response);
 
-        console.log('User ID from AsyncStorage:', userId);
-
-
-        if (!userId) {
-          Alert.alert('Error', 'User not logged in. Please log in again.');
-          setShowConfirmationModal(false);
-          return;
-        }
-
-        // Prepare the payload for the API
-        const payload = {
-          personCount: numberOfSlots,
-          startingTime: selectedSlot,
-          date: selectedDate,
-          userId: userId,
-          users: [userId], // Add the logged-in user's ID to the users array
-          trainerId: null, // Can be set if trainer is selected
-          endTime: null, // Can be calculated or set by the backend
-          notes: '' // Optional notes
-        };
-
-        // Make the API call to create the session
-        const response = await bookSession(payload);
-        console.log('Booking API Response:', response);
-        // Check if there was an error in the response
-        if (response.error) {
-          Alert.alert('Booking Failed', response.error);
-          setShowConfirmationModal(false);
-          return;
-        }
-
-        // If successful, add the booking to local state
-        const newBooking: Booking = {
-          id: response.data?.id || Date.now().toString() + Math.random().toString(36).substring(2, 9),
-          date: selectedDate,
-          time: selectedSlot,
-          timestamp: bookingTimestamp,
-        };
-        setBookings(prev => [...prev, newBooking]);
-
-        // Refresh sessions for the selected date to update availability
-        const refreshedSessions = await getSessionsByDate(selectedDate);
-        if (!refreshedSessions.error && refreshedSessions.data) {
-          setSessionsForDate(refreshedSessions.data);
-        }
-
+      if (response.code === '100') {
         setBookingConfirmed(true);
         setShowConfirmationModal(false);
 
-        // Reset states after a delay
+        // Refresh bookings and slots
+        await fetchMyBookings(clientId);
+        await fetchAvailableSlots();
+
         setTimeout(() => {
           setBookingConfirmed(false);
-          setSelectedDate(null);
           setSelectedSlot(null);
-          setNumberOfSlots(1);
         }, 3000);
-
-      } catch (error) {
-        console.error('Error creating booking:', error);
-        Alert.alert('Error', 'Failed to create booking. Please try again.');
+      } else {
+        Alert.alert('Booking Failed', response.error || 'Failed to book session');
         setShowConfirmationModal(false);
       }
+    } catch (error) {
+      console.error('Error booking session:', error);
+      Alert.alert('Error', 'Failed to book session. Please try again.');
+      setShowConfirmationModal(false);
+    } finally {
+      setIsLoading(false);
     }
   };
 
-  // Find the currently selected slot's details to check its availability
-  const currentSelectedSlotDetails = timeSlots.find(slot => slot.time === selectedSlot);
-  const isSlotWithMultipleAvailability = currentSelectedSlotDetails ? currentSelectedSlotDetails.slotsAvailable > 1 : false;
+  const handleCancelSession = async () => {
+    if (!selectedSessionToCancel || !clientId) return;
 
-  // Calculate today and the date 6 days from now
+    setIsLoading(true);
+    try {
+      const response = await cancelSession(selectedSessionToCancel.id, clientId);
+      console.log('Cancel response:', response);
+
+      if (response.code === '100') {
+        Alert.alert('Success', 'Session cancelled successfully');
+        await fetchMyBookings(clientId);
+        if (selectedDate) {
+          await fetchAvailableSlots();
+        }
+      } else {
+        Alert.alert('Error', response.error || 'Failed to cancel session');
+      }
+    } catch (error) {
+      console.error('Error cancelling session:', error);
+      Alert.alert('Error', 'Failed to cancel session');
+    } finally {
+      setIsLoading(false);
+      setShowCancelConfirmModal(false);
+      setSelectedSessionToCancel(null);
+    }
+  };
+
+  // Check if a session can be cancelled (4 hours before)
+  const canCancelSession = (session: BookedSession) => {
+    const sessionDateTime = new Date(`${session.date}T${session.time}:00`);
+    const hoursDiff = (sessionDateTime.getTime() - now.getTime()) / (1000 * 60 * 60);
+    return hoursDiff >= 4;
+  };
+
+  // A session's check-in QR can be generated shortly before it starts, through a window after
+  const isSessionActive = (session: BookedSession) => {
+    if (session.status !== 'Scheduled' && session.status !== 'In Progress') return false;
+    const sessionDateTime = new Date(`${session.date}T${session.time}:00`);
+    const nowTime = Date.now();
+    return (
+      nowTime >= sessionDateTime.getTime() - QR_WINDOW_BEFORE_MS &&
+      nowTime <= sessionDateTime.getTime() + QR_WINDOW_AFTER_MS
+    );
+  };
+
+  const requestQrToken = async (session: BookedSession) => {
+    if (!clientId) return;
+    try {
+      const response = await generateSessionQR(session.id, clientId);
+      if (response.code === '100' && response.token) {
+        setQrToken(response.token);
+        setQrError(null);
+      } else {
+        setQrError(response.error || 'Failed to generate QR code');
+      }
+    } catch (error) {
+      console.error('Error generating session QR:', error);
+      setQrError('Failed to generate QR code');
+    }
+  };
+
+  const handleGenerateQr = async (session: BookedSession) => {
+    setQrBooking(session);
+    setQrModalVisible(true);
+    setQrLoading(true);
+    setQrToken(null);
+    setQrError(null);
+
+    await requestQrToken(session);
+    setQrLoading(false);
+
+    if (qrRefreshTimer.current) clearInterval(qrRefreshTimer.current);
+    qrRefreshTimer.current = setInterval(() => {
+      requestQrToken(session);
+    }, QR_REFRESH_INTERVAL_MS);
+  };
+
+  const closeQrModal = () => {
+    if (qrRefreshTimer.current) {
+      clearInterval(qrRefreshTimer.current);
+      qrRefreshTimer.current = null;
+    }
+    setQrModalVisible(false);
+    setQrToken(null);
+    setQrBooking(null);
+    setQrError(null);
+  };
+
+  useEffect(() => {
+    return () => {
+      if (qrRefreshTimer.current) clearInterval(qrRefreshTimer.current);
+    };
+  }, []);
+
+  // Calculate date range for calendar
   const sixDaysFromNow = new Date();
   sixDaysFromNow.setDate(now.getDate() + 6);
   const sixDaysFromNowString = sixDaysFromNow.toISOString().split('T')[0];
 
-  // Dynamically create markedDates object with explicit typing
-  const markedDates: Record<string, CalendarMarking> = bookings.reduce<Record<string, CalendarMarking>>((acc, booking) => {
-    // Mark booked dates with a red dot
-    if (!acc[booking.date]) {
-      acc[booking.date] = { marked: true, dotColor: colors.red };
-    } else {
-      // If date already marked, ensure dotColor is red if it's a booking
-      acc[booking.date].marked = true;
-      acc[booking.date].dotColor = colors.red;
-    }
-    return acc;
-  }, {});
+  // Create calendar markings
+  const markedDates: Record<string, CalendarMarking> = {};
 
-  // If a date is selected, add its specific styling
+  myBookings.forEach((booking) => {
+    markedDates[booking.date] = { marked: true, dotColor: colors.red };
+  });
+
   if (selectedDate) {
-    const selectedDateMarking: CalendarMarking = {
+    markedDates[selectedDate] = {
+      ...markedDates[selectedDate],
       selected: true,
       selectedColor: colors.lightGray,
-      dotColor: colors.black, // This will override the red dot if the date is also booked
     };
-
-    // Merge with existing marking if the date is already booked
-    if (markedDates[selectedDate]) {
-      markedDates[selectedDate] = {
-        ...markedDates[selectedDate],
-        ...selectedDateMarking,
-      };
-    } else {
-      // Otherwise, just assign the selected date marking
-      markedDates[selectedDate] = selectedDateMarking;
-    }
   }
-
-  // Function to handle cancellation
-  const handleCancelBooking = (bookingId: string) => {
-    setBookings(prevBookings => prevBookings.filter(booking => booking.id !== bookingId));
-    setShowCancelConfirmModal(false);
-    setSelectedBookingToCancel(null);
-    // Optionally, you might want to re-fetch or re-render something here
-  };
-
-  // Find the booking to cancel from the state
-  const bookingToCancel = bookings.find(b => b.id === selectedBookingToCancel?.id);
-
-  // Check if the selected booking is cancellable
-  const isCancellable = bookingToCancel
-    ? bookingToCancel.timestamp - now.getTime() >= 4 * 60 * 60 * 1000 // 4 hours in milliseconds
-    : false;
 
   return (
     <View style={AppStyles.sessionContainer}>
@@ -295,14 +328,14 @@ const BookSession = () => {
           <Calendar
             onDayPress={handleDateSelect}
             markedDates={markedDates}
-            minDate={todayString} // Added minDate
-            maxDate={sixDaysFromNowString} // Added maxDate
+            minDate={todayString}
+            maxDate={sixDaysFromNowString}
             theme={{
               calendarBackground: colors.black,
               textSectionTitleColor: colors.lightGray,
               selectedDayBackgroundColor: colors.lightGray,
               selectedDayTextColor: colors.black,
-              todayTextColor: '#ff0000', // Highlight today
+              todayTextColor: '#ff0000',
               dayTextColor: colors.lightGray,
               textDisabledColor: colors.mediumGray,
               dotColor: '#ff0000',
@@ -320,7 +353,6 @@ const BookSession = () => {
         {/* Information section when no date is selected */}
         {!selectedDate && (
           <View style={AppStyles.infoSectionContainer}>
-            {/* Welcome Section */}
             <View style={AppStyles.infoCard}>
               <View style={AppStyles.infoHeader}>
                 <Icon name="star" size={24} color={colors.lightGray} style={AppStyles.infoIcon} />
@@ -331,7 +363,6 @@ const BookSession = () => {
               </Text>
             </View>
 
-            {/* Services Section */}
             <View style={AppStyles.servicesContainer}>
               <Text style={AppStyles.servicesTitle}>Our Services</Text>
               <View style={AppStyles.servicesGrid}>
@@ -358,7 +389,6 @@ const BookSession = () => {
               </View>
             </View>
 
-            {/* How to Book Section */}
             <View style={AppStyles.infoCard}>
               <View style={AppStyles.infoHeader}>
                 <Icon name="question-circle" size={24} color={colors.lightGray} style={AppStyles.infoIcon} />
@@ -380,21 +410,18 @@ const BookSession = () => {
               </View>
             </View>
 
-            {/* Tips Section */}
             <View style={AppStyles.infoCard}>
               <View style={AppStyles.infoHeader}>
                 <Icon name="lightbulb-o" size={24} color={colors.lightGray} style={AppStyles.infoIcon} />
                 <Text style={AppStyles.infoTitle}>Booking Tips</Text>
               </View>
               <View style={AppStyles.tipsList}>
-                <Text style={AppStyles.tipItem}>• Book sessions at least 4 hours in advance</Text>
-                <Text style={AppStyles.tipItem}>• Cancellations must be made 4+ hours before the session</Text>
-                <Text style={AppStyles.tipItem}>• Green slots indicate availability</Text>
-                <Text style={AppStyles.tipItem}>• Red dots show dates with existing bookings</Text>
+                <Text style={AppStyles.tipItem}>Book sessions at least 4 hours in advance</Text>
+                <Text style={AppStyles.tipItem}>Cancellations must be made 4+ hours before the session</Text>
+                <Text style={AppStyles.tipItem}>Green slots indicate availability</Text>
+                <Text style={AppStyles.tipItem}>Red dots show dates with existing bookings</Text>
               </View>
             </View>
-
-
           </View>
         )}
 
@@ -404,37 +431,53 @@ const BookSession = () => {
               Available slots for {new Date(selectedDate).toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })}
             </Text>
 
-            <View style={AppStyles.timeSlotsGrid}>
-              {timeSlots.map((slot, index) => (
-                <TouchableOpacity
-                  key={index}
-                  style={[
-                    AppStyles.timeSlot,
-                    slot.slotsAvailable === 0 && AppStyles.timeSlotBooked, // Style for booked slots
-                    slot.slotsAvailable === 1 && AppStyles.timeSlotOneAvailable, // Style for 1 slot available
-                    slot.slotsAvailable === 2 && AppStyles.timeSlotTwoAvailable, // Style for 2 slots available
-                    selectedSlot === slot.time && AppStyles.timeSlotSelected // Style for selected slot
-                  ]}
-                  onPress={() => handleSlotSelect(slot)}
-                  disabled={slot.slotsAvailable === 0} // Disable if no slots available
-                >
-                  <Text style={[
-                    AppStyles.timeSlotText,
-                    slot.slotsAvailable === 0 && AppStyles.timeSlotTextBooked, // Text style for booked slots
-                    slot.slotsAvailable === 1 && AppStyles.timeSlotTextOneAvailable, // Text style for 1 slot available
-                    slot.slotsAvailable === 2 && AppStyles.timeSlotTextTwoAvailable, // Text style for 2 slots available
-                    selectedSlot === slot.time && AppStyles.timeSlotTextSelected // Text style for selected slot
-                  ]}>
-                    {slot.time}
-                  </Text>
-                </TouchableOpacity>
-              ))}
-            </View>
+            {isLoading ? (
+              <ActivityIndicator size="large" color={colors.lightGray} style={{ marginTop: 20 }} />
+            ) : isDayOff ? (
+              <View style={{ padding: 20, alignItems: 'center' }}>
+                <Icon name="calendar-times-o" size={50} color={colors.mediumGray} />
+                <Text style={{ color: colors.lightGray, fontSize: 16, marginTop: 10 }}>
+                  This day is marked as off. No sessions available.
+                </Text>
+              </View>
+            ) : timeSlots.length === 0 ? (
+              <View style={{ padding: 20, alignItems: 'center' }}>
+                <Icon name="clock-o" size={50} color={colors.mediumGray} />
+                <Text style={{ color: colors.lightGray, fontSize: 16, marginTop: 10 }}>
+                  No available slots for this date.
+                </Text>
+              </View>
+            ) : (
+              <View style={AppStyles.timeSlotsGrid}>
+                {timeSlots.map((slot) => (
+                  <TouchableOpacity
+                    key={slot.id}
+                    style={[
+                      AppStyles.timeSlot,
+                      !slot.isAvailable && AppStyles.timeSlotBooked,
+                      slot.isAvailable && AppStyles.timeSlotTwoAvailable,
+                      selectedSlot?.id === slot.id && AppStyles.timeSlotSelected
+                    ]}
+                    onPress={() => handleSlotSelect(slot)}
+                    disabled={!slot.isAvailable}
+                  >
+                    <Text style={[
+                      AppStyles.timeSlotText,
+                      !slot.isAvailable && AppStyles.timeSlotTextBooked,
+                      slot.isAvailable && AppStyles.timeSlotTextTwoAvailable,
+                      selectedSlot?.id === slot.id && AppStyles.timeSlotTextSelected
+                    ]}>
+                      {slot.time}
+                    </Text>
+                  </TouchableOpacity>
+                ))}
+              </View>
+            )}
 
             {selectedSlot && (
               <TouchableOpacity
                 style={AppStyles.confirmButton}
-                onPress={handleConfirmBookingPress} // Show the "Are you sure?" modal
+                onPress={handleConfirmBookingPress}
               >
                 <Text style={AppStyles.confirmButtonText}>CONFIRM BOOKING</Text>
               </TouchableOpacity>
@@ -442,13 +485,13 @@ const BookSession = () => {
           </View>
         )}
 
-        {/* Display existing bookings */}
-        {bookings.length > 0 && (
+        {/* My Bookings Section */}
+        {myBookings.length > 0 && (
           <View style={AppStyles.myBookingsContainer}>
             <Text style={AppStyles.sectionTitle}>MY BOOKINGS</Text>
-            {bookings.map((booking) => {
-              const bookingDateTime = new Date(booking.timestamp);
-              const isCancellable = bookingDateTime.getTime() - now.getTime() >= 4 * 60 * 60 * 1000; // 4 hours in milliseconds
+            {myBookings.map((booking) => {
+              const isCancellable = canCancelSession(booking);
+              const isActive = isSessionActive(booking);
 
               return (
                 <View key={booking.id} style={AppStyles.bookingItem}>
@@ -456,24 +499,50 @@ const BookSession = () => {
                     <Text style={AppStyles.bookingText}>
                       {booking.date} at {booking.time}
                     </Text>
-                  </View>
-                  <TouchableOpacity
-                    style={[
-                      AppStyles.bookingCancelButton,
-                      !isCancellable && AppStyles.bookingCancelButtonDisabled // Style for disabled button
-                    ]}
-                    onPress={() => {
-                      if (isCancellable) {
-                        setSelectedBookingToCancel(booking);
-                        setShowCancelConfirmModal(true);
-                      }
-                    }}
-                    disabled={!isCancellable}
-                  >
-                    <Text style={AppStyles.bookingCancelButtonText}>
-                      {isCancellable ? 'Cancel' : 'Cannot Cancel'}
+                    {booking.trainer_name && (
+                      <Text style={{ color: colors.mediumGray, fontSize: 12 }}>
+                        Trainer: {booking.trainer_name}
+                      </Text>
+                    )}
+                    <Text style={{ color: colors.lightGreen, fontSize: 12 }}>
+                      Status: {booking.status}
                     </Text>
-                  </TouchableOpacity>
+                  </View>
+                  <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                    <TouchableOpacity
+                      style={[
+                        AppStyles.bookingCancelButton,
+                        { backgroundColor: colors.bottleGreen, marginRight: 8, flexDirection: 'row', alignItems: 'center' },
+                        !isActive && AppStyles.bookingCancelButtonDisabled
+                      ]}
+                      onPress={() => {
+                        if (isActive) handleGenerateQr(booking);
+                      }}
+                      disabled={!isActive}
+                    >
+                      <Icon name="qrcode" size={14} color={colors.lightGray} />
+                      <Text style={[AppStyles.bookingCancelButtonText, { marginLeft: 6 }]}>
+                        {isActive ? 'Generate QR' : 'Not Active'}
+                      </Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity
+                      style={[
+                        AppStyles.bookingCancelButton,
+                        !isCancellable && AppStyles.bookingCancelButtonDisabled
+                      ]}
+                      onPress={() => {
+                        if (isCancellable) {
+                          setSelectedSessionToCancel(booking);
+                          setShowCancelConfirmModal(true);
+                        }
+                      }}
+                      disabled={!isCancellable}
+                    >
+                      <Text style={AppStyles.bookingCancelButtonText}>
+                        {isCancellable ? 'Cancel' : 'Cannot Cancel'}
+                      </Text>
+                    </TouchableOpacity>
+                  </View>
                 </View>
               );
             })}
@@ -481,68 +550,41 @@ const BookSession = () => {
         )}
       </ScrollView>
 
-      {/* Confirmation Modal for "Are you sure?" to BOOK */}
-      <Modal
-        visible={showConfirmationModal}
-        transparent={true}
-        animationType="fade"
-      >
+      {/* Booking Confirmation Modal */}
+      <Modal visible={showConfirmationModal} transparent={true} animationType="fade">
         <View style={AppStyles.modalContainer}>
           <View style={[AppStyles.modalContent, { padding: 20 }]}>
-            <Text style={[AppStyles.modalTitle, { marginBottom: 10 }]}>Are you sure you want to book this session?</Text>
+            <Text style={[AppStyles.modalTitle, { marginBottom: 10 }]}>Confirm Booking</Text>
             <Text style={[AppStyles.modalText, { marginBottom: 20 }]}>
-              You cannot cancel if the session is in less than 4 hours.
+              Are you sure you want to book this session?
             </Text>
-
+            <Text style={[AppStyles.modalText, { marginBottom: 10, fontWeight: 'bold' }]}>
+              Date: {selectedDate && new Date(selectedDate).toLocaleDateString()}
+            </Text>
             <Text style={[AppStyles.modalText, { marginBottom: 20, fontWeight: 'bold' }]}>
-              Booking: {selectedSlot} on {selectedDate && new Date(selectedDate).toLocaleDateString()} for {numberOfSlots} slot(s)
+              Time: {selectedSlot?.time} - {selectedSlot?.endTime}
+            </Text>
+            <Text style={[AppStyles.modalText, { marginBottom: 20, color: colors.mediumGray }]}>
+              Note: Cancellations must be made at least 4 hours before the session.
             </Text>
 
-            {isSlotWithMultipleAvailability && (
-              <View style={AppStyles.slotSelectionContainer}>
-                <Text style={AppStyles.slotSelectionLabel}>Select number of slots:</Text>
-                <View style={AppStyles.slotSelectionButtons}>
-                  <TouchableOpacity
-                    style={[
-                      AppStyles.slotSelectionButton,
-                      numberOfSlots === 1 && AppStyles.slotSelectionButtonSelected
-                    ]}
-                    onPress={() => setNumberOfSlots(1)}
-                  >
-                    <Text style={[
-                      AppStyles.slotSelectionButtonText,
-                      numberOfSlots === 1 && AppStyles.slotSelectionButtonTextSelected
-                    ]}>1</Text>
-                  </TouchableOpacity>
-                  <TouchableOpacity
-                    style={[
-                      AppStyles.slotSelectionButton,
-                      numberOfSlots === 2 && AppStyles.slotSelectionButtonSelected
-                    ]}
-                    onPress={() => setNumberOfSlots(2)}
-                  >
-                    <Text style={[
-                      AppStyles.slotSelectionButtonText,
-                      numberOfSlots === 2 && AppStyles.slotSelectionButtonTextSelected
-                    ]}>2</Text>
-                  </TouchableOpacity>
-                </View>
-              </View>
-            )}
-
-            <View style={{ flexDirection: 'row', justifyContent: 'space-around', width: '100%', marginTop: 20 }}>
+            <View style={{ flexDirection: 'row', justifyContent: 'space-around', width: '100%' }}>
               <TouchableOpacity
                 style={[AppStyles.confirmButton, AppStyles.modalButton]}
                 onPress={handleFinalBooking}
+                disabled={isLoading}
               >
-                <Text style={AppStyles.confirmButtonText}>PROCEED</Text>
+                {isLoading ? (
+                  <ActivityIndicator color={colors.lightGray} size="small" />
+                ) : (
+                  <Text style={AppStyles.confirmButtonText}>CONFIRM</Text>
+                )}
               </TouchableOpacity>
               <TouchableOpacity
                 style={[AppStyles.cancelButton, AppStyles.modalButton]}
                 onPress={() => {
                   setShowConfirmationModal(false);
-                  setSelectedSlot(null); // Deselect slot if cancelled
-                  setNumberOfSlots(1); // Reset slot count
+                  setSelectedSlot(null);
                 }}
               >
                 <Text style={AppStyles.cancelButtonText}>CANCEL</Text>
@@ -552,25 +594,20 @@ const BookSession = () => {
         </View>
       </Modal>
 
-      {/* Final Booking Confirmation Modal */}
-      <Modal
-        visible={bookingConfirmed}
-        transparent={true}
-        animationType="fade"
-      >
+      {/* Booking Success Modal */}
+      <Modal visible={bookingConfirmed} transparent={true} animationType="fade">
         <View style={AppStyles.modalContainer}>
           <View style={AppStyles.modalContent}>
-            <Text style={{ fontSize: 60, color: '#ff0000' }}>✓</Text>
+            <Text style={{ fontSize: 60, color: '#00ff00' }}>&#10003;</Text>
             <Text style={AppStyles.modalTitle}>BOOKING CONFIRMED!</Text>
             <Text style={AppStyles.modalText}>
-              Your session on {selectedDate ? new Date(selectedDate).toLocaleDateString() : 'N/A'} at {selectedSlot || 'N/A'} for {numberOfSlots} slot(s) has been booked.
+              Your session on {selectedDate ? new Date(selectedDate).toLocaleDateString() : 'N/A'} at {selectedSlot?.time || 'N/A'} has been booked.
             </Text>
             <TouchableOpacity
               style={AppStyles.confirmButton}
               onPress={() => {
                 setBookingConfirmed(false);
                 setSelectedSlot(null);
-                setNumberOfSlots(1);
               }}
             >
               <Text style={AppStyles.confirmButtonText}>OK</Text>
@@ -579,47 +616,74 @@ const BookSession = () => {
         </View>
       </Modal>
 
-      {/* Cancellation Confirmation Modal */}
-      <Modal
-        visible={showCancelConfirmModal}
-        transparent={true}
-        animationType="fade"
-      >
+      {/* Cancel Confirmation Modal */}
+      <Modal visible={showCancelConfirmModal} transparent={true} animationType="fade">
         <View style={AppStyles.modalContainer}>
           <View style={[AppStyles.modalContent, { padding: 20 }]}>
-            <Text style={[AppStyles.modalTitle, { marginBottom: 10 }]}>Confirm Cancellation</Text>
+            <Text style={[AppStyles.modalTitle, { marginBottom: 10 }]}>Cancel Session</Text>
             <Text style={[AppStyles.modalText, { marginBottom: 20 }]}>
-              Are you sure you want to cancel your session on {bookingToCancel?.date} at {bookingToCancel?.time}?
+              Are you sure you want to cancel your session on {selectedSessionToCancel?.date} at {selectedSessionToCancel?.time}?
             </Text>
-            {!isCancellable && (
-              <Text style={[AppStyles.modalText, { color: colors.red, marginBottom: 20 }]}>
-                This booking cannot be cancelled as it is less than 4 hours away.
-              </Text>
-            )}
-            <View style={{ flexDirection: 'row', justifyContent: 'space-around', width: '100%', marginTop: 20 }}>
+
+            <View style={{ flexDirection: 'row', justifyContent: 'space-around', width: '100%' }}>
               <TouchableOpacity
-                style={[AppStyles.confirmButton, AppStyles.modalButton]}
-                onPress={() => {
-                  if (bookingToCancel && isCancellable) {
-                    handleCancelBooking(bookingToCancel.id);
-                  }
-                }}
-                disabled={!isCancellable} // Disable if not cancellable
+                style={[AppStyles.confirmButton, AppStyles.modalButton, { backgroundColor: colors.red }]}
+                onPress={handleCancelSession}
+                disabled={isLoading}
               >
-                <Text style={AppStyles.confirmButtonText}>
-                  {isCancellable ? 'Yes, Cancel' : 'Cannot Cancel'}
-                </Text>
+                {isLoading ? (
+                  <ActivityIndicator color={colors.white} size="small" />
+                ) : (
+                  <Text style={AppStyles.confirmButtonText}>YES, CANCEL</Text>
+                )}
               </TouchableOpacity>
               <TouchableOpacity
                 style={[AppStyles.cancelButton, AppStyles.modalButton]}
                 onPress={() => {
                   setShowCancelConfirmModal(false);
-                  setSelectedBookingToCancel(null);
+                  setSelectedSessionToCancel(null);
                 }}
               >
-                <Text style={AppStyles.cancelButtonText}>No, Go Back</Text>
+                <Text style={AppStyles.cancelButtonText}>NO, GO BACK</Text>
               </TouchableOpacity>
             </View>
+          </View>
+        </View>
+      </Modal>
+      {/* Session Check-In QR Modal */}
+      <Modal visible={qrModalVisible} transparent={true} animationType="fade" onRequestClose={closeQrModal}>
+        <View style={AppStyles.modalContainer}>
+          <View style={[AppStyles.modalContent, { padding: 20 }]}>
+            <Text style={[AppStyles.modalTitle, { marginBottom: 10 }]}>Session Check-In</Text>
+            {qrBooking && (
+              <Text style={[AppStyles.modalText, { marginBottom: 15 }]}>
+                {qrBooking.date} at {qrBooking.time}
+              </Text>
+            )}
+
+            {qrLoading ? (
+              <ActivityIndicator size="large" color={colors.lightGray} style={{ marginVertical: 30 }} />
+            ) : qrError ? (
+              <View style={{ alignItems: 'center', marginVertical: 20 }}>
+                <Icon name="exclamation-circle" size={40} color={colors.red} />
+                <Text style={[AppStyles.modalText, { marginTop: 10, textAlign: 'center' }]}>{qrError}</Text>
+              </View>
+            ) : qrToken ? (
+              <View style={{ backgroundColor: colors.white, padding: 16, borderRadius: 10, marginVertical: 10 }}>
+                <QRCode value={qrToken} size={200} />
+              </View>
+            ) : null}
+
+            <Text style={[AppStyles.modalText, { marginTop: 10, marginBottom: 20, color: colors.mediumGray, textAlign: 'center' }]}>
+              Show this to your trainer to check in. It refreshes automatically.
+            </Text>
+
+            <TouchableOpacity
+              style={[AppStyles.cancelButton, AppStyles.modalButton]}
+              onPress={closeQrModal}
+            >
+              <Text style={AppStyles.cancelButtonText}>CLOSE</Text>
+            </TouchableOpacity>
           </View>
         </View>
       </Modal>

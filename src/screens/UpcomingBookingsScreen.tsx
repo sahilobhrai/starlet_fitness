@@ -1,200 +1,235 @@
-import React, { useState } from 'react';
-import { View, Text, StyleSheet, FlatList, TouchableOpacity, ScrollView, Linking, Alert, Modal } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { View, Text, StyleSheet, FlatList, TouchableOpacity, ScrollView, Linking, Alert, Modal, ActivityIndicator } from 'react-native';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import { colors } from '../theme/colors';
 import { AppStyles } from '../styles/AppStyles';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { getTrainerUpcomingSessions, startSession, endSession } from '../api';
 
 interface UpcomingBookingsScreenProps {
   navigation: any;
 }
 
-interface Booking {
-  id: string;
-  customerName: string;
-  sessionDate: string;
-  sessionTime: string;
-  sessionType: string;
-  phoneNumber: string;
+interface SessionCheckIn {
+  id: number;
+  trainer: number;
+  trainer_name: string;
+  scanned_at: string;
 }
 
-interface Trainer {
-  id: string;
-  name: string;
-  isPresent: boolean;
+interface Session {
+  id: number;
+  customer_name: string;
+  customer_phone: string;
+  session_date: string;
+  status: string;
+  person_count: number;
+  notes: string | null;
+  check_ins?: SessionCheckIn[];
 }
 
 const UpcomingBookingsScreen = ({ navigation: _navigation }: UpcomingBookingsScreenProps) => {
-
-  const [upcomingBookings, setUpcomingBookings] = useState<Booking[]>([
-    { id: '5', customerName: 'Eve Adams', sessionDate: '2025-10-03', sessionTime: '11:00 AM', sessionType: 'Training', phoneNumber: 'tel:+15551234567' },
-    { id: '6', customerName: 'Frank White', sessionDate: '2025-10-03', sessionTime: '03:00 PM', sessionType: 'Training', phoneNumber: 'tel:+15551234568' },
-    { id: '7', customerName: 'Grace Lee', sessionDate: '2025-10-04', sessionTime: '10:30 AM', sessionType: 'Training', phoneNumber: 'tel:+15551234569' },
-  ]);
-
-  // Modal and trainer selection state
+  const [sessions, setSessions] = useState<Session[]>([]);
+  const [loading, setLoading] = useState(true);
   const [isEndSessionModalVisible, setIsEndSessionModalVisible] = useState(false);
-  const [selectedBookingForEnd, setSelectedBookingForEnd] = useState<Booking | null>(null);
-  const [selectedTrainers, setSelectedTrainers] = useState<string[]>([]);
+  const [selectedSession, setSelectedSession] = useState<Session | null>(null);
+  const [sessionAmount, setSessionAmount] = useState('500');
+  const [actionLoading, setActionLoading] = useState(false);
 
-  // Available trainers list
-  const availableTrainers: Trainer[] = [
-    { id: '1', name: 'John Smith (You)', isPresent: true },
-    { id: '2', name: 'Sarah Johnson', isPresent: false },
-    { id: '3', name: 'Mike Wilson', isPresent: false },
-    { id: '4', name: 'Emma Davis', isPresent: false },
-    { id: '5', name: 'Alex Brown', isPresent: false },
-  ];
+  useEffect(() => {
+    fetchSessions();
+  }, []);
 
-  const handleCall = (phoneNumber: string) => {
-    Linking.openURL(phoneNumber).catch(err => {
+  const fetchSessions = async () => {
+    try {
+      const trainerId = await AsyncStorage.getItem('userId');
+      if (trainerId) {
+        const response = await getTrainerUpcomingSessions(trainerId);
+        console.log('Upcoming Sessions Response:', response);
+
+        if (response.code === '100' && response.sessions) {
+          setSessions(response.sessions);
+        }
+      }
+    } catch (error) {
+      console.error('Error fetching sessions:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleCall = (phone: string) => {
+    const phoneUrl = `tel:+91${phone}`;
+    Linking.openURL(phoneUrl).catch(err => {
       console.error('Failed to open dialer:', err);
-      Alert.alert('Error', 'Unable to make phone call. Please check your device settings.');
+      Alert.alert('Error', 'Unable to make phone call.');
     });
   };
 
-  const handleEndSessionPress = (booking: Booking) => {
-    setSelectedBookingForEnd(booking);
-    // Pre-select the current trainer (John Smith)
-    setSelectedTrainers(['1']);
+  const handleStartSession = async (session: Session) => {
+    setActionLoading(true);
+    try {
+      const response = await startSession(session.id);
+      if (response.code === '100') {
+        Alert.alert('Success', 'Session started!');
+        fetchSessions();
+      } else {
+        Alert.alert('Error', response.error || 'Failed to start session');
+      }
+    } catch (error) {
+      console.error('Error starting session:', error);
+      Alert.alert('Error', 'Failed to start session');
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
+  const handleEndSessionPress = (session: Session) => {
+    setSelectedSession(session);
     setIsEndSessionModalVisible(true);
   };
 
-  const handleTrainerSelection = (trainerId: string) => {
-    setSelectedTrainers(prev => {
-      if (prev.includes(trainerId)) {
-        // Don't allow unselecting the current trainer
-        if (trainerId === '1') return prev;
-        return prev.filter(id => id !== trainerId);
+  const handleFinishSession = async () => {
+    if (!selectedSession) return;
+
+    setActionLoading(true);
+    try {
+      const response = await endSession(selectedSession.id, parseFloat(sessionAmount) || 500);
+      if (response.code === '100') {
+        Alert.alert('Success', 'Session ended successfully! Earnings recorded.');
+        setIsEndSessionModalVisible(false);
+        setSelectedSession(null);
+        fetchSessions();
       } else {
-        // Limit selection to maximum 3 trainers (current + 2 more)
-        if (prev.length >= 3) {
-          Alert.alert('Maximum Trainers', 'You can select a maximum of 3 trainers for this session.');
-          return prev;
-        }
-        return [...prev, trainerId];
+        Alert.alert('Error', response.error || 'Failed to end session');
       }
-    });
-  };
-
-  const handleFinishSession = () => {
-    if (selectedTrainers.length === 0) {
-      Alert.alert('No Trainers Selected', 'Please select at least one trainer to end the session.');
-      return;
+    } catch (error) {
+      console.error('Error ending session:', error);
+      Alert.alert('Error', 'Failed to end session');
+    } finally {
+      setActionLoading(false);
     }
-
-    const selectedTrainerNames = availableTrainers
-      .filter(trainer => selectedTrainers.includes(trainer.id))
-      .map(trainer => trainer.name.replace(' (You)', ''));
-
-    // Remove the booking from the list
-    setUpcomingBookings(prevBookings => prevBookings.filter(booking => booking.id !== selectedBookingForEnd?.id));
-
-    // Close modal and reset state
-    setIsEndSessionModalVisible(false);
-    setSelectedBookingForEnd(null);
-    setSelectedTrainers([]);
-
-    Alert.alert(
-      'Session Ended Successfully!',
-      `Rewards have been assigned to: ${selectedTrainerNames.join(', ')}`
-    );
   };
 
-  const handleCancelEndSession = () => {
-    setIsEndSessionModalVisible(false);
-    setSelectedBookingForEnd(null);
-    setSelectedTrainers([]);
+  const formatDateTime = (dateString: string) => {
+    const date = new Date(dateString);
+    return {
+      date: date.toLocaleDateString(),
+      time: date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+    };
   };
 
-  const renderBookingItem = ({ item }: { item: Booking }) => (
-    <View style={styles.bookingCard}>
-      <View style={styles.bookingHeader}>
-        <View style={styles.customerInfo}>
-          <View style={styles.avatarContainer}>
-            <Text style={styles.avatarText}>{item.customerName.charAt(0).toUpperCase()}</Text>
+  const renderSessionItem = ({ item }: { item: Session }) => {
+    const { date, time } = formatDateTime(item.session_date);
+    const isInProgress = item.status === 'In Progress';
+
+    return (
+      <View style={styles.bookingCard}>
+        <View style={styles.bookingHeader}>
+          <View style={styles.customerInfo}>
+            <View style={styles.avatarContainer}>
+              <Text style={styles.avatarText}>{item.customer_name.charAt(0).toUpperCase()}</Text>
+            </View>
+            <View style={styles.customerDetails}>
+              <Text style={styles.customerName}>{item.customer_name}</Text>
+              <View style={[styles.sessionTypeBadge, isInProgress && { backgroundColor: '#ffc10720' }]}>
+                <Text style={[styles.sessionTypeText, isInProgress && { color: '#ffc107' }]}>
+                  {item.status}
+                </Text>
+              </View>
+            </View>
           </View>
-          <View style={styles.customerDetails}>
-            <Text style={styles.customerName}>{item.customerName}</Text>
-            <View style={styles.sessionTypeBadge}>
-              <Text style={styles.sessionTypeText}>{item.sessionType}</Text>
+          <View style={styles.bookingIdContainer}>
+            <Text style={styles.bookingIdText}>{item.person_count} person(s)</Text>
+          </View>
+        </View>
+
+        <View style={styles.bookingInfo}>
+          <View style={styles.dateTimeContainer}>
+            <View style={styles.dateContainer}>
+              <Icon name="calendar" size={16} color={colors.bottleGreen} />
+              <Text style={styles.dateTimeText}>{date}</Text>
+            </View>
+            <View style={styles.timeContainer}>
+              <Icon name="clock-o" size={16} color={colors.bottleGreen} />
+              <Text style={styles.dateTimeText}>{time}</Text>
             </View>
           </View>
         </View>
-        <View style={styles.bookingIdContainer}>
-          <Text style={styles.bookingIdText}>ID: {item.id}</Text>
+
+        {item.check_ins && item.check_ins.length > 0 && (
+          <View style={styles.checkInsContainer}>
+            <Icon name="qrcode" size={14} color={colors.bottleGreen} />
+            <Text style={styles.checkInsText}>
+              Checked in: {item.check_ins.map(c => c.trainer_name).join(', ')}
+            </Text>
+          </View>
+        )}
+
+        <View style={styles.buttonContainer}>
+          <TouchableOpacity style={styles.callButton} onPress={() => handleCall(item.customer_phone)}>
+            <Icon name="phone" size={16} color={colors.lightGray} />
+            <Text style={styles.callButtonText}>Call</Text>
+          </TouchableOpacity>
+
+          {item.status === 'Scheduled' ? (
+            <TouchableOpacity
+              style={[styles.endButton, { backgroundColor: colors.bottleGreen }]}
+              onPress={() => handleStartSession(item)}
+              disabled={actionLoading}
+            >
+              <Icon name="play" size={16} color={colors.lightGray} />
+              <Text style={styles.endButtonText}>Start</Text>
+            </TouchableOpacity>
+          ) : (
+            <TouchableOpacity style={styles.endButton} onPress={() => handleEndSessionPress(item)} disabled={actionLoading}>
+              <Icon name="check-circle" size={16} color={colors.black} />
+              <Text style={[styles.endButtonText, { color: colors.black }]}>End</Text>
+            </TouchableOpacity>
+          )}
         </View>
       </View>
-
-      <View style={styles.bookingInfo}>
-        <View style={styles.dateTimeContainer}>
-          <View style={styles.dateContainer}>
-            <Icon name="calendar" size={16} color={colors.bottleGreen} />
-            <Text style={styles.dateTimeText}>{item.sessionDate}</Text>
-          </View>
-          <View style={styles.timeContainer}>
-            <Icon name="clock-o" size={16} color={colors.bottleGreen} />
-            <Text style={styles.dateTimeText}>{item.sessionTime}</Text>
-          </View>
-        </View>
-      </View>
-
-      <View style={styles.buttonContainer}>
-        <TouchableOpacity
-          style={styles.callButton}
-          onPress={() => handleCall(item.phoneNumber)}
-        >
-          <Icon name="phone" size={16} color={colors.lightGray} />
-          <Text style={styles.callButtonText}>Call</Text>
-        </TouchableOpacity>
-        <TouchableOpacity
-          style={styles.endButton}
-          onPress={() => handleEndSessionPress(item)}
-        >
-          <Icon name="check-circle" size={16} color={colors.lightGray} />
-          <Text style={styles.endButtonText}>End Session</Text>
-        </TouchableOpacity>
-      </View>
-    </View>
-  );
+    );
+  };
 
   const renderEmptyState = () => (
     <View style={styles.emptyState}>
-      <View style={styles.emptyStateIcon}>
-        <Icon name="calendar" size={60} color={colors.bottleGreen} />
-      </View>
-      <Text style={styles.emptyStateTitle}>No Upcoming Bookings</Text>
+      <Icon name="calendar" size={60} color={colors.mediumGray} />
+      <Text style={styles.emptyStateTitle}>No Upcoming Sessions</Text>
       <Text style={styles.emptyStateSubtitle}>All your sessions are completed!</Text>
-      <Text style={styles.emptyStateDescription}>
-        New bookings will appear here when customers schedule sessions with you.
-      </Text>
-      <View style={styles.emptyStateTip}>
-        <Text style={styles.emptyStateTipText}>
-          💡 Tip: Keep an eye on your notifications for new booking requests
-        </Text>
-      </View>
     </View>
   );
+
+  if (loading) {
+    return (
+      <View style={[styles.container, { justifyContent: 'center', alignItems: 'center' }]}>
+        <ActivityIndicator size="large" color={colors.red} />
+        <Text style={{ color: colors.lightGray, marginTop: 10 }}>Loading sessions...</Text>
+      </View>
+    );
+  }
 
   return (
     <View style={styles.container}>
       <ScrollView style={AppStyles.mainContent}>
-        {/* Header Section */}
         <View style={styles.headerSection}>
-          <Text style={styles.pageTitle}>Upcoming Bookings</Text>
-          <Text style={styles.pageSubtitle}>Manage your scheduled sessions and customer interactions</Text>
+          <Text style={styles.pageTitle}>Upcoming Sessions</Text>
+          <Text style={styles.pageSubtitle}>Manage your scheduled training sessions</Text>
         </View>
 
-        {/* Bookings List Section */}
         <View style={styles.listSection}>
           <View style={styles.listHeader}>
-            <Text style={styles.listTitle}>Scheduled Sessions ({upcomingBookings.length})</Text>
+            <Text style={styles.listTitle}>Scheduled ({sessions.length})</Text>
+            <TouchableOpacity onPress={fetchSessions}>
+              <Icon name="refresh" size={20} color={colors.bottleGreen} />
+            </TouchableOpacity>
           </View>
 
-          {upcomingBookings.length > 0 ? (
+          {sessions.length > 0 ? (
             <FlatList
-              data={upcomingBookings}
-              renderItem={renderBookingItem}
-              keyExtractor={(item) => item.id}
+              data={sessions}
+              renderItem={renderSessionItem}
+              keyExtractor={(item) => item.id.toString()}
               scrollEnabled={false}
               showsVerticalScrollIndicator={false}
             />
@@ -204,78 +239,37 @@ const UpcomingBookingsScreen = ({ navigation: _navigation }: UpcomingBookingsScr
         </View>
       </ScrollView>
 
-      {/* End Session Modal */}
-      <Modal
-        visible={isEndSessionModalVisible}
-        animationType="slide"
-        transparent={true}
-        onRequestClose={handleCancelEndSession}
-      >
+      <Modal visible={isEndSessionModalVisible} animationType="slide" transparent={true} onRequestClose={() => setIsEndSessionModalVisible(false)}>
         <View style={styles.modalOverlay}>
           <View style={styles.modalContent}>
             <Text style={styles.modalTitle}>End Session</Text>
-            <Text style={styles.modalSubtitle}>
-              Select trainers who were present for reward distribution
-            </Text>
 
-            {selectedBookingForEnd && (
+            {selectedSession && (
               <View style={styles.bookingSummary}>
                 <Text style={styles.bookingSummaryTitle}>Session Details:</Text>
                 <Text style={styles.bookingSummaryText}>
-                  {selectedBookingForEnd.customerName} - {selectedBookingForEnd.sessionDate} at {selectedBookingForEnd.sessionTime}
+                  {selectedSession.customer_name} - {formatDateTime(selectedSession.session_date).date}
                 </Text>
               </View>
             )}
 
-            <ScrollView style={styles.trainersList} showsVerticalScrollIndicator={true}>
-              <Text style={styles.trainersListTitle}>Available Trainers:</Text>
-              {availableTrainers.map((trainer) => (
-                <TouchableOpacity
-                  key={trainer.id}
-                  style={[
-                    styles.trainerItem,
-                    selectedTrainers.includes(trainer.id) && styles.trainerItemSelected,
-                    trainer.id === '1' && styles.trainerItemCurrent // Special styling for current trainer
-                  ]}
-                  onPress={() => handleTrainerSelection(trainer.id)}
-                >
-                  <View style={styles.trainerCheckbox}>
-                    {selectedTrainers.includes(trainer.id) ? (
-                      <Icon name="check-circle" size={20} color={colors.bottleGreen} />
-                    ) : (
-                      <Icon name="circle-o" size={20} color={colors.mediumGray} />
-                    )}
-                  </View>
-                  <View style={styles.trainerInfo}>
-                    <Text style={[
-                      styles.trainerName,
-                      selectedTrainers.includes(trainer.id) && styles.trainerNameSelected,
-                      trainer.id === '1' && styles.trainerNameCurrent
-                    ]}>
-                      {trainer.name}
-                    </Text>
-                    {trainer.id === '1' && (
-                      <Text style={styles.trainerCurrentBadge}>Current Trainer</Text>
-                    )}
-                  </View>
-                </TouchableOpacity>
-              ))}
-            </ScrollView>
+            <View style={{ marginBottom: 20 }}>
+              <Text style={{ color: colors.lightGray, marginBottom: 10 }}>Session Amount (INR):</Text>
+              <View style={{ backgroundColor: colors.black, borderRadius: 10, padding: 15 }}>
+                <Text style={{ color: colors.lightGray, fontSize: 18 }}>₹ {sessionAmount}</Text>
+              </View>
+            </View>
 
             <View style={styles.modalButtonContainer}>
-              <TouchableOpacity
-                style={styles.modalCancelButton}
-                onPress={handleCancelEndSession}
-              >
+              <TouchableOpacity style={styles.modalCancelButton} onPress={() => setIsEndSessionModalVisible(false)}>
                 <Text style={styles.modalCancelButtonText}>Cancel</Text>
               </TouchableOpacity>
-              <TouchableOpacity
-                style={styles.modalFinishButton}
-                onPress={handleFinishSession}
-              >
-                <Text style={styles.modalFinishButtonText}>
-                  Finish Session ({selectedTrainers.length})
-                </Text>
+              <TouchableOpacity style={styles.modalFinishButton} onPress={handleFinishSession} disabled={actionLoading}>
+                {actionLoading ? (
+                  <ActivityIndicator color={colors.lightGray} size="small" />
+                ) : (
+                  <Text style={styles.modalFinishButtonText}>Complete</Text>
+                )}
               </TouchableOpacity>
             </View>
           </View>
@@ -286,382 +280,50 @@ const UpcomingBookingsScreen = ({ navigation: _navigation }: UpcomingBookingsScr
 };
 
 const styles = StyleSheet.create({
-  // Main Container
-  container: {
-    flex: 1,
-    backgroundColor: colors.black,
-  },
-
-  // Header Section
-  headerSection: {
-    alignItems: 'center' as const,
-    paddingVertical: 20,
-    paddingHorizontal: 20,
-  },
-  pageTitle: {
-    fontSize: 28,
-    fontWeight: '700' as const,
-    color: colors.lightGray,
-    marginBottom: 8,
-    textAlign: 'center' as const,
-  },
-  pageSubtitle: {
-    fontSize: 16,
-    color: colors.mediumGray,
-    textAlign: 'center' as const,
-    lineHeight: 22,
-  },
-
-  // List Section
-  listSection: {
-    paddingHorizontal: 20,
-    paddingBottom: 20,
-  },
-  listHeader: {
-    marginBottom: 16,
-  },
-  listTitle: {
-    fontSize: 22,
-    fontWeight: '700' as const,
-    color: colors.lightGray,
-    textAlign: 'center' as const,
-  },
-
-  // Booking Card
-  bookingCard: {
-    backgroundColor: colors.darkGray,
-    borderRadius: 16,
-    marginBottom: 15,
-    padding: 20,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-    elevation: 8,
-    borderWidth: 1,
-    borderColor: colors.mediumGray + '20',
-  },
-
-  // Booking Header
-  bookingHeader: {
-    flexDirection: 'row' as const,
-    justifyContent: 'space-between' as const,
-    alignItems: 'flex-start' as const,
-    marginBottom: 15,
-  },
-  customerInfo: {
-    flexDirection: 'row' as const,
-    alignItems: 'center' as const,
-    flex: 1,
-  },
-  avatarContainer: {
-    width: 50,
-    height: 50,
-    borderRadius: 25,
-    backgroundColor: colors.bottleGreen,
-    alignItems: 'center' as const,
-    justifyContent: 'center' as const,
-    marginRight: 15,
-  },
-  avatarText: {
-    fontSize: 20,
-    fontWeight: 'bold' as const,
-    color: colors.lightGray,
-  },
-  customerDetails: {
-    flex: 1,
-  },
-  customerName: {
-    fontSize: 20,
-    fontWeight: '700' as const,
-    color: colors.lightGray,
-    marginBottom: 5,
-  },
-  sessionTypeBadge: {
-    backgroundColor: colors.bottleGreen + '20',
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-    borderRadius: 12,
-    alignSelf: 'flex-start' as const,
-  },
-  sessionTypeText: {
-    fontSize: 12,
-    color: colors.bottleGreen,
-    fontWeight: 'bold' as const,
-  },
-  bookingIdContainer: {
-    backgroundColor: colors.lightGray + '10',
-    borderRadius: 8,
-    paddingHorizontal: 10,
-    paddingVertical: 5,
-  },
-  bookingIdText: {
-    fontSize: 12,
-    color: colors.lightGray,
-    fontWeight: 'bold' as const,
-  },
-
-  // Booking Info Section
-  bookingInfo: {
-    marginBottom: 20,
-  },
-  dateTimeContainer: {
-    backgroundColor: colors.black + '40',
-    borderRadius: 12,
-    padding: 15,
-  },
-  dateContainer: {
-    flexDirection: 'row' as const,
-    alignItems: 'center' as const,
-    marginBottom: 8,
-  },
-  timeContainer: {
-    flexDirection: 'row' as const,
-    alignItems: 'center' as const,
-  },
-  dateTimeText: {
-    fontSize: 16,
-    color: colors.lightGray,
-    marginLeft: 8,
-    fontWeight: '600' as const,
-  },
-
-  // Button Container
-  buttonContainer: {
-    flexDirection: 'row' as const,
-    justifyContent: 'space-between' as const,
-    borderTopWidth: 1,
-    borderTopColor: colors.mediumGray + '30',
-    paddingTop: 15,
-  },
-  callButton: {
-    backgroundColor: colors.bottleGreen,
-    paddingVertical: 12,
-    paddingHorizontal: 20,
-    borderRadius: 10,
-    flexDirection: 'row' as const,
-    alignItems: 'center' as const,
-    justifyContent: 'center' as const,
-    flex: 1,
-    marginRight: 10,
-  },
-  callButtonText: {
-    color: colors.lightGray,
-    fontSize: 14,
-    fontWeight: '700' as const,
-    marginLeft: 8,
-  },
-  endButton: {
-    backgroundColor: '#ffc107',
-    paddingVertical: 12,
-    paddingHorizontal: 20,
-    borderRadius: 10,
-    flexDirection: 'row' as const,
-    alignItems: 'center' as const,
-    justifyContent: 'center' as const,
-    flex: 1,
-    marginLeft: 10,
-  },
-  endButtonText: {
-    color: colors.black,
-    fontSize: 14,
-    fontWeight: '700' as const,
-    marginLeft: 8,
-  },
-
-  // Empty State
-  emptyState: {
-    alignItems: 'center' as const,
-    paddingVertical: 60,
-    paddingHorizontal: 20,
-  },
-  emptyStateIcon: {
-    width: 100,
-    height: 100,
-    borderRadius: 50,
-    backgroundColor: colors.bottleGreen + '20',
-    alignItems: 'center' as const,
-    justifyContent: 'center' as const,
-    marginBottom: 20,
-  },
-  emptyStateTitle: {
-    fontSize: 22,
-    fontWeight: '700' as const,
-    color: colors.mediumGray,
-    marginBottom: 10,
-    textAlign: 'center' as const,
-  },
-  emptyStateSubtitle: {
-    fontSize: 18,
-    fontWeight: '600' as const,
-    color: colors.lightGray,
-    marginBottom: 8,
-    textAlign: 'center' as const,
-  },
-  emptyStateDescription: {
-    fontSize: 14,
-    color: colors.mediumGray,
-    textAlign: 'center' as const,
-    lineHeight: 20,
-    marginBottom: 20,
-  },
-  emptyStateTip: {
-    backgroundColor: colors.bottleGreen + '20',
-    paddingHorizontal: 20,
-    paddingVertical: 12,
-    borderRadius: 20,
-  },
-  emptyStateTipText: {
-    fontSize: 12,
-    color: colors.bottleGreen,
-    fontWeight: 'bold' as const,
-    textAlign: 'center' as const,
-  },
-
-  // Modal Styles
-  modalOverlay: {
-    flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.8)',
-    justifyContent: 'center' as const,
-    alignItems: 'center' as const,
-  },
-  modalContent: {
-    backgroundColor: colors.darkGray,
-    borderRadius: 20,
-    padding: 20,
-    width: '90%',
-    maxHeight: '85%',
-    borderWidth: 1,
-    borderColor: colors.bottleGreen + '40',
-    justifyContent: 'space-between' as const,
-  },
-  modalTitle: {
-    fontSize: 24,
-    fontWeight: '700' as const,
-    color: colors.lightGray,
-    textAlign: 'center' as const,
-    marginBottom: 10,
-  },
-  modalSubtitle: {
-    fontSize: 16,
-    color: colors.mediumGray,
-    textAlign: 'center' as const,
-    marginBottom: 20,
-    lineHeight: 22,
-  },
-
-  // Booking Summary in Modal
-  bookingSummary: {
-    backgroundColor: colors.black + '40',
-    borderRadius: 12,
-    padding: 15,
-    marginBottom: 20,
-    borderWidth: 1,
-    borderColor: colors.bottleGreen + '30',
-  },
-  bookingSummaryTitle: {
-    fontSize: 16,
-    fontWeight: '700' as const,
-    color: colors.bottleGreen,
-    marginBottom: 8,
-  },
-  bookingSummaryText: {
-    fontSize: 14,
-    color: colors.lightGray,
-    lineHeight: 20,
-  },
-
-  // Trainers List in Modal
-  trainersList: {
-    marginBottom: 25,
-    maxHeight: 200,
-  },
-  trainersListTitle: {
-    fontSize: 18,
-    fontWeight: '700' as const,
-    color: colors.lightGray,
-    marginBottom: 15,
-  },
-  trainerItem: {
-    flexDirection: 'row' as const,
-    alignItems: 'center' as const,
-    backgroundColor: colors.black + '40',
-    borderRadius: 12,
-    padding: 15,
-    marginBottom: 10,
-    borderWidth: 1,
-    borderColor: colors.mediumGray + '20',
-  },
-  trainerItemSelected: {
-    backgroundColor: colors.bottleGreen + '20',
-    borderColor: colors.bottleGreen,
-  },
-  trainerItemCurrent: {
-    backgroundColor: colors.bottleGreen + '15',
-    borderColor: colors.bottleGreen + '60',
-  },
-  trainerCheckbox: {
-    marginRight: 15,
-  },
-  trainerInfo: {
-    flex: 1,
-  },
-  trainerName: {
-    fontSize: 16,
-    fontWeight: '600' as const,
-    color: colors.lightGray,
-    marginBottom: 2,
-  },
-  trainerNameSelected: {
-    color: colors.bottleGreen,
-  },
-  trainerNameCurrent: {
-    color: colors.bottleGreen,
-    fontWeight: '700' as const,
-  },
-  trainerCurrentBadge: {
-    fontSize: 12,
-    color: colors.bottleGreen,
-    fontWeight: 'bold' as const,
-    backgroundColor: colors.bottleGreen + '20',
-    paddingHorizontal: 8,
-    paddingVertical: 2,
-    borderRadius: 8,
-    alignSelf: 'flex-start' as const,
-  },
-
-  // Modal Buttons
-  modalButtonContainer: {
-    flexDirection: 'row' as const,
-    justifyContent: 'space-between' as const,
-    gap: 15,
-  },
-  modalCancelButton: {
-    backgroundColor: colors.mediumGray,
-    paddingVertical: 15,
-    paddingHorizontal: 20,
-    borderRadius: 12,
-    flex: 1,
-    alignItems: 'center' as const,
-  },
-  modalCancelButtonText: {
-    color: colors.lightGray,
-    fontSize: 16,
-    fontWeight: '700' as const,
-  },
-  modalFinishButton: {
-    backgroundColor: colors.bottleGreen,
-    paddingVertical: 15,
-    paddingHorizontal: 20,
-    borderRadius: 12,
-    flex: 1,
-    alignItems: 'center' as const,
-  },
-  modalFinishButtonText: {
-    color: colors.lightGray,
-    fontSize: 16,
-    fontWeight: '700' as const,
-  },
+  container: { flex: 1, backgroundColor: colors.black },
+  headerSection: { alignItems: 'center', paddingVertical: 20, paddingHorizontal: 20 },
+  pageTitle: { fontSize: 28, fontWeight: '700', color: colors.lightGray, marginBottom: 8, textAlign: 'center' },
+  pageSubtitle: { fontSize: 16, color: colors.mediumGray, textAlign: 'center', lineHeight: 22 },
+  listSection: { paddingHorizontal: 20, paddingBottom: 100 },
+  listHeader: { marginBottom: 16, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
+  listTitle: { fontSize: 22, fontWeight: '700', color: colors.lightGray },
+  bookingCard: { backgroundColor: colors.darkGray, borderRadius: 16, marginBottom: 15, padding: 20, elevation: 8, borderWidth: 1, borderColor: colors.mediumGray + '20' },
+  bookingHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 15 },
+  customerInfo: { flexDirection: 'row', alignItems: 'center', flex: 1 },
+  avatarContainer: { width: 50, height: 50, borderRadius: 25, backgroundColor: colors.bottleGreen, alignItems: 'center', justifyContent: 'center', marginRight: 15 },
+  avatarText: { fontSize: 20, fontWeight: 'bold', color: colors.lightGray },
+  customerDetails: { flex: 1 },
+  customerName: { fontSize: 20, fontWeight: '700', color: colors.lightGray, marginBottom: 5 },
+  sessionTypeBadge: { backgroundColor: colors.bottleGreen + '20', paddingHorizontal: 10, paddingVertical: 4, borderRadius: 12, alignSelf: 'flex-start' },
+  sessionTypeText: { fontSize: 12, color: colors.bottleGreen, fontWeight: 'bold' },
+  bookingIdContainer: { backgroundColor: colors.lightGray + '10', borderRadius: 8, paddingHorizontal: 10, paddingVertical: 5 },
+  bookingIdText: { fontSize: 12, color: colors.lightGray, fontWeight: 'bold' },
+  bookingInfo: { marginBottom: 20 },
+  checkInsContainer: { flexDirection: 'row', alignItems: 'center', marginBottom: 15 },
+  checkInsText: { color: colors.mediumGray, fontSize: 13, marginLeft: 8 },
+  dateTimeContainer: { backgroundColor: colors.black + '40', borderRadius: 12, padding: 15 },
+  dateContainer: { flexDirection: 'row', alignItems: 'center', marginBottom: 8 },
+  timeContainer: { flexDirection: 'row', alignItems: 'center' },
+  dateTimeText: { fontSize: 16, color: colors.lightGray, marginLeft: 8, fontWeight: '600' },
+  buttonContainer: { flexDirection: 'row', justifyContent: 'space-between', borderTopWidth: 1, borderTopColor: colors.mediumGray + '30', paddingTop: 15 },
+  callButton: { backgroundColor: colors.bottleGreen, paddingVertical: 12, paddingHorizontal: 20, borderRadius: 10, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', flex: 1, marginRight: 10 },
+  callButtonText: { color: colors.lightGray, fontSize: 14, fontWeight: '700', marginLeft: 8 },
+  endButton: { backgroundColor: '#ffc107', paddingVertical: 12, paddingHorizontal: 20, borderRadius: 10, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', flex: 1, marginLeft: 10 },
+  endButtonText: { color: colors.lightGray, fontSize: 14, fontWeight: '700', marginLeft: 8 },
+  emptyState: { alignItems: 'center', paddingVertical: 60, paddingHorizontal: 20 },
+  emptyStateTitle: { fontSize: 22, fontWeight: '700', color: colors.mediumGray, marginBottom: 10, marginTop: 20, textAlign: 'center' },
+  emptyStateSubtitle: { fontSize: 16, color: colors.mediumGray, textAlign: 'center' },
+  modalOverlay: { flex: 1, backgroundColor: 'rgba(0, 0, 0, 0.8)', justifyContent: 'center', alignItems: 'center' },
+  modalContent: { backgroundColor: colors.darkGray, borderRadius: 20, padding: 20, width: '90%', maxHeight: '85%', borderWidth: 1, borderColor: colors.bottleGreen + '40' },
+  modalTitle: { fontSize: 24, fontWeight: '700', color: colors.lightGray, textAlign: 'center', marginBottom: 10 },
+  bookingSummary: { backgroundColor: colors.black + '40', borderRadius: 12, padding: 15, marginBottom: 20, borderWidth: 1, borderColor: colors.bottleGreen + '30' },
+  bookingSummaryTitle: { fontSize: 16, fontWeight: '700', color: colors.bottleGreen, marginBottom: 8 },
+  bookingSummaryText: { fontSize: 14, color: colors.lightGray, lineHeight: 20 },
+  modalButtonContainer: { flexDirection: 'row', justifyContent: 'space-between', gap: 15 },
+  modalCancelButton: { backgroundColor: colors.mediumGray, paddingVertical: 15, paddingHorizontal: 20, borderRadius: 12, flex: 1, alignItems: 'center' },
+  modalCancelButtonText: { color: colors.lightGray, fontSize: 16, fontWeight: '700' },
+  modalFinishButton: { backgroundColor: colors.bottleGreen, paddingVertical: 15, paddingHorizontal: 20, borderRadius: 12, flex: 1, alignItems: 'center' },
+  modalFinishButtonText: { color: colors.lightGray, fontSize: 16, fontWeight: '700' },
 });
 
 export default UpcomingBookingsScreen;

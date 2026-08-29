@@ -4,9 +4,8 @@ import Icon from 'react-native-vector-icons/FontAwesome';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { colors } from '../theme/colors';
 import { AppStyles } from '../styles/AppStyles';
-import { getUserById } from '../api';
+import { getClientProfile, updateClientProfile } from '../api';
 
-// Profile Screen Component
 interface ProfileScreenProps {
   navigation: any;
 }
@@ -14,14 +13,16 @@ interface ProfileScreenProps {
 const ProfileScreen = ({ navigation }: ProfileScreenProps) => {
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
   const [userId, setUserId] = useState<string | null>(null);
 
-  // User data state
   const [userDetails, setUserDetails] = useState({
     name: '',
-    mobileNumber: '',
+    email: '',
+    phone: '',
     height: '',
     weight: '',
+    branchName: '',
   });
 
   const [measurements, setMeasurements] = useState({
@@ -39,121 +40,124 @@ const ProfileScreen = ({ navigation }: ProfileScreenProps) => {
     weight: '',
     bmi: '',
     bodyFat: '',
-    muscleRate: '',
+    muscleMassKg: '',
+    muscleMassPercent: '',
     subcutaneousFat: '',
     visceralFat: '',
     bodyAge: '',
     bmr: '',
     skeletalMass: '',
-    muscleMass: '',
     boneMass: '',
     protein: '',
   });
 
-  // Fetch user data on component mount
   useEffect(() => {
-    const fetchUserData = async () => {
-      try {
-        console.log('🔄 ProfileScreen: Fetching user data...');
-
-        // Get userId from AsyncStorage
-        const storedUserId = await AsyncStorage.getItem('userId');
-        console.log('📦 Stored User ID:', storedUserId);
-
-        if (!storedUserId) {
-          Alert.alert('Error', 'User not logged in. Please log in again.');
-          navigation.reset({
-            index: 0,
-            routes: [{ name: 'OTP' }],
-          });
-          return;
-        }
-
-        setUserId(storedUserId);
-
-        // Fetch user data from backend
-        console.log('🌐 Calling getUserById API...');
-        const response = await getUserById(storedUserId);
-        console.log('✅ User Data Response:', JSON.stringify(response, null, 2));
-
-        if (response.error) {
-          console.error('❌ API Error:', response.error);
-          Alert.alert('Error', response.error);
-          setLoading(false);
-          return;
-        }
-
-        if (response.success && response.data) {
-          console.log('✅ Processing user data...');
-          const user = response.data;
-
-          // Update user details
-          setUserDetails({
-            name: user.name || '',
-            mobileNumber: user.mobileNumber || user.phoneNumber || '',
-            height: user.height ? `${user.height} cm` : '',
-            weight: user.weight ? `${user.weight} kg` : '',
-          });
-
-          // Update measurements
-          setMeasurements({
-            chest: user.measurements_chest ? `${user.measurements_chest} cm` : '',
-            upperWaist: user.measurements_upperWaist ? `${user.measurements_upperWaist} cm` : '',
-            midWaist: user.measurements_midWaist ? `${user.measurements_midWaist} cm` : '',
-            lowerWaist: user.measurements_lowerWaist ? `${user.measurements_lowerWaist} cm` : '',
-            rightThigh: user.measurements_rightThigh ? `${user.measurements_rightThigh} cm` : '',
-            leftThigh: user.measurements_leftThigh ? `${user.measurements_leftThigh} cm` : '',
-            rightArm: user.measurements_rightArm ? `${user.measurements_rightArm} cm` : '',
-            leftArm: user.measurements_leftArm ? `${user.measurements_leftArm} cm` : '',
-          });
-
-          // Update BCA data
-          setBca({
-            weight: user.bca_weight ? `${user.bca_weight} kg` : '',
-            bmi: user.bca_bmi ? `${user.bca_bmi}` : '',
-            bodyFat: user.bca_bodyFat ? `${user.bca_bodyFat}%` : '',
-            muscleRate: user.bca_muscleRate ? `${user.bca_muscleRate}%` : '',
-            subcutaneousFat: user.bca_subcutaneousFat ? `${user.bca_subcutaneousFat}%` : '',
-            visceralFat: user.bca_visceralFat ? `${user.bca_visceralFat}` : '',
-            bodyAge: user.bca_bodyAge ? `${user.bca_bodyAge}` : '',
-            bmr: user.bca_bmr ? `${user.bca_bmr} kcal` : '',
-            skeletalMass: user.bca_skeletalMass ? `${user.bca_skeletalMass} kg` : '',
-            muscleMass: user.bca_muscleMass ? `${user.bca_muscleMass} kg` : '',
-            boneMass: user.bca_boneMass ? `${user.bca_boneMass} kg` : '',
-            protein: user.bca_protein ? `${user.bca_protein}%` : '',
-          });
-
-          console.log('✅ User data loaded successfully!');
-          console.log('📊 Name:', user.name);
-          console.log('📧 Email:', user.email);
-        }
-
-        setLoading(false);
-      } catch (error) {
-        console.error('Error fetching user data:', error);
-        Alert.alert('Error', 'Failed to load user data. Please try again.');
-        setLoading(false);
-      }
-    };
-
-    fetchUserData();
+    fetchUserProfile();
   }, [navigation]);
 
-  const handleLogout = () => {
-    setShowLogoutConfirm(true);
+  const fetchUserProfile = async () => {
+    try {
+      const storedUserId = await AsyncStorage.getItem('userId');
+
+      if (!storedUserId) {
+        Alert.alert('Error', 'User not logged in. Please log in again.');
+        navigation.reset({
+          index: 0,
+          routes: [{ name: 'OTP' }],
+        });
+        return;
+      }
+
+      setUserId(storedUserId);
+
+      const response = await getClientProfile(storedUserId);
+      console.log('Profile Response:', response);
+
+      if (response.error) {
+        Alert.alert('Error', response.error);
+        setLoading(false);
+        return;
+      }
+
+      if (response.code === '100' && response.profile) {
+        const profile = response.profile;
+
+        setUserDetails({
+          name: profile.name || '',
+          email: profile.email || '',
+          phone: profile.phone || '',
+          height: profile.height_cm ? `${profile.height_cm}` : '',
+          weight: profile.weight_kg ? `${profile.weight_kg}` : '',
+          branchName: profile.branch_name || '',
+        });
+
+        setMeasurements({
+          chest: profile.measurements_chest_cm ? `${profile.measurements_chest_cm}` : '',
+          upperWaist: profile.measurements_upper_waist_cm ? `${profile.measurements_upper_waist_cm}` : '',
+          midWaist: profile.measurements_mid_waist_cm ? `${profile.measurements_mid_waist_cm}` : '',
+          lowerWaist: profile.measurements_lower_waist_cm ? `${profile.measurements_lower_waist_cm}` : '',
+          rightThigh: profile.measurements_rightThigh_cm ? `${profile.measurements_rightThigh_cm}` : '',
+          leftThigh: profile.measurements_leftThigh_cm ? `${profile.measurements_leftThigh_cm}` : '',
+          rightArm: profile.measurements_rightArm_cm ? `${profile.measurements_rightArm_cm}` : '',
+          leftArm: profile.measurements_leftArm_cm ? `${profile.measurements_leftArm_cm}` : '',
+        });
+
+        setBca({
+          weight: profile.bca_weight_kg ? `${profile.bca_weight_kg}` : '',
+          bmi: profile.bca_bmi ? `${profile.bca_bmi}` : '',
+          bodyFat: profile.bca_bodyFat_percent ? `${profile.bca_bodyFat_percent}` : '',
+          muscleMassKg: profile.bca_muscleMass_kg ? `${profile.bca_muscleMass_kg}` : '',
+          muscleMassPercent: profile.bca_muscleMass_percent ? `${profile.bca_muscleMass_percent}` : '',
+          subcutaneousFat: profile.bca_subcutaneousFat_percent ? `${profile.bca_subcutaneousFat_percent}` : '',
+          visceralFat: profile.bca_visceralFat_level ? `${profile.bca_visceralFat_level}` : '',
+          bodyAge: profile.bca_bodyAge_years ? `${profile.bca_bodyAge_years}` : '',
+          bmr: profile.bca_bmr_kcal ? `${profile.bca_bmr_kcal}` : '',
+          skeletalMass: profile.bca_skeletalMass_kg ? `${profile.bca_skeletalMass_kg}` : '',
+          boneMass: profile.bca_boneMass_kg ? `${profile.bca_boneMass_kg}` : '',
+          protein: profile.bca_protein_kg ? `${profile.bca_protein_kg}` : '',
+        });
+      }
+
+      setLoading(false);
+    } catch (error) {
+      console.error('Error fetching profile:', error);
+      Alert.alert('Error', 'Failed to load profile. Please try again.');
+      setLoading(false);
+    }
   };
 
-  const confirmLogout = () => {
+  const handleSaveProfile = async () => {
+    if (!userId) return;
+
+    setSaving(true);
+    try {
+      const response = await updateClientProfile(userId, {
+        name: userDetails.name,
+        email: userDetails.email,
+        height_cm: userDetails.height ? parseFloat(userDetails.height) : null,
+        weight_kg: userDetails.weight ? parseFloat(userDetails.weight) : null,
+      });
+
+      if (response.code === '100') {
+        Alert.alert('Success', 'Profile updated successfully!');
+      } else {
+        Alert.alert('Error', response.error || 'Failed to update profile');
+      }
+    } catch (error) {
+      console.error('Error saving profile:', error);
+      Alert.alert('Error', 'Failed to save profile');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleLogout = async () => {
+    await AsyncStorage.multiRemove(['userToken', 'userId', 'userData', 'userRole', 'userBranch']);
     setShowLogoutConfirm(false);
-    // Navigate back to OTP screen on logout
     navigation.reset({
       index: 0,
       routes: [{ name: 'OTP' }],
     });
-  };
-
-  const cancelLogout = () => {
-    setShowLogoutConfirm(false);
   };
 
   const renderModernCard = (title: string, children: React.ReactNode, iconName?: string) => (
@@ -175,29 +179,29 @@ const ProfileScreen = ({ navigation }: ProfileScreenProps) => {
         <Text style={AppStyles.detailLabel}>{label}</Text>
       </View>
       <View style={AppStyles.detailValueContainer}>
-        <Text style={AppStyles.detailValue}>{value}</Text>
+        <Text style={AppStyles.detailValue}>{value || 'N/A'}</Text>
       </View>
     </View>
   );
 
-  const renderEditableDetailRow = (label: string, value: string, onChangeText: (text: string) => void, placeholder?: string) => (
+  const renderEditableDetailRow = (label: string, value: string, onChangeText: (text: string) => void, placeholder?: string, editable: boolean = true) => (
     <View style={AppStyles.modernDetailRow}>
       <View style={AppStyles.detailRowHeader}>
         <Text style={AppStyles.detailLabel}>{label}</Text>
       </View>
       <View style={AppStyles.inputContainer}>
         <TextInput
-          style={AppStyles.modernInput}
+          style={[AppStyles.modernInput, !editable && { opacity: 0.6 }]}
           value={value}
           onChangeText={onChangeText}
           placeholder={placeholder || `Enter ${label.toLowerCase()}`}
           placeholderTextColor={colors.mediumGray}
+          editable={editable}
         />
       </View>
     </View>
   );
 
-  // Show loading indicator while fetching data
   if (loading) {
     return (
       <View style={[AppStyles.profileContainer, { justifyContent: 'center', alignItems: 'center' }]}>
@@ -209,26 +213,20 @@ const ProfileScreen = ({ navigation }: ProfileScreenProps) => {
 
   return (
     <ScrollView style={AppStyles.profileContainer} showsVerticalScrollIndicator={false}>
-      {/* Modern Header Section */}
       <View style={AppStyles.profileHeader}>
         <View style={AppStyles.avatarContainer}>
           <Image source={require('../images/logo.png')} style={AppStyles.profileAvatar} />
-          <View style={AppStyles.avatarOverlay}>
-            <TouchableOpacity style={AppStyles.editAvatarButton}>
-              <Icon name="camera" size={14} color={colors.lightGray} />
-            </TouchableOpacity>
-          </View>
         </View>
         <Text style={AppStyles.profileName}>{userDetails.name || 'Guest User'}</Text>
-        <Text style={AppStyles.profileSubtitle}>Fitness Enthusiast</Text>
+        <Text style={AppStyles.profileSubtitle}>{userDetails.branchName || 'Fitness Enthusiast'}</Text>
         <View style={AppStyles.profileStats}>
           <View style={AppStyles.statItem}>
-            <Text style={AppStyles.statValue}>{userDetails.weight || 'N/A'}</Text>
+            <Text style={AppStyles.statValue}>{userDetails.weight ? `${userDetails.weight} kg` : 'N/A'}</Text>
             <Text style={AppStyles.statLabel}>Weight</Text>
           </View>
           <View style={AppStyles.statDivider} />
           <View style={AppStyles.statItem}>
-            <Text style={AppStyles.statValue}>{userDetails.height || 'N/A'}</Text>
+            <Text style={AppStyles.statValue}>{userDetails.height ? `${userDetails.height} cm` : 'N/A'}</Text>
             <Text style={AppStyles.statLabel}>Height</Text>
           </View>
           <View style={AppStyles.statDivider} />
@@ -239,76 +237,88 @@ const ProfileScreen = ({ navigation }: ProfileScreenProps) => {
         </View>
       </View>
 
-      {/* User Details Section */}
       {renderModernCard(
         'Personal Information',
         <>
           {renderEditableDetailRow('Full Name', userDetails.name, (text) => setUserDetails({ ...userDetails, name: text }))}
-          {renderEditableDetailRow('Mobile Number', userDetails.mobileNumber, (text) => setUserDetails({ ...userDetails, mobileNumber: text }))}
-          {renderEditableDetailRow('Height', userDetails.height, (text) => setUserDetails({ ...userDetails, height: text }))}
-          {renderEditableDetailRow('Weight', userDetails.weight, (text) => setUserDetails({ ...userDetails, weight: text }))}
+          {renderEditableDetailRow('Email', userDetails.email, (text) => setUserDetails({ ...userDetails, email: text }))}
+          {renderEditableDetailRow('Mobile Number', userDetails.phone, () => {}, '', false)}
+          {renderEditableDetailRow('Height (cm)', userDetails.height, (text) => setUserDetails({ ...userDetails, height: text }))}
+          {renderEditableDetailRow('Weight (kg)', userDetails.weight, (text) => setUserDetails({ ...userDetails, weight: text }))}
         </>,
         'user'
       )}
 
-      {/* Body Measurements Section */}
       {renderModernCard(
         'Body Measurements',
         <>
           <View style={AppStyles.measurementsGrid}>
-            {renderEditableDetailRow('Chest', measurements.chest, (text) => setMeasurements({ ...measurements, chest: text }))}
-            {renderEditableDetailRow('Upper Waist', measurements.upperWaist, (text) => setMeasurements({ ...measurements, upperWaist: text }))}
-            {renderEditableDetailRow('Mid Waist', measurements.midWaist, (text) => setMeasurements({ ...measurements, midWaist: text }))}
-            {renderEditableDetailRow('Lower Waist', measurements.lowerWaist, (text) => setMeasurements({ ...measurements, lowerWaist: text }))}
-            {renderEditableDetailRow('Right Thigh', measurements.rightThigh, (text) => setMeasurements({ ...measurements, rightThigh: text }))}
-            {renderEditableDetailRow('Left Thigh', measurements.leftThigh, (text) => setMeasurements({ ...measurements, leftThigh: text }))}
-            {renderEditableDetailRow('Right Arm', measurements.rightArm, (text) => setMeasurements({ ...measurements, rightArm: text }))}
-            {renderEditableDetailRow('Left Arm', measurements.leftArm, (text) => setMeasurements({ ...measurements, leftArm: text }))}
+            {renderDetailRow('Chest', measurements.chest ? `${measurements.chest} cm` : '', 'arrows-h')}
+            {renderDetailRow('Upper Waist', measurements.upperWaist ? `${measurements.upperWaist} cm` : '', 'arrows-h')}
+            {renderDetailRow('Mid Waist', measurements.midWaist ? `${measurements.midWaist} cm` : '', 'arrows-h')}
+            {renderDetailRow('Lower Waist', measurements.lowerWaist ? `${measurements.lowerWaist} cm` : '', 'arrows-h')}
+            {renderDetailRow('Right Thigh', measurements.rightThigh ? `${measurements.rightThigh} cm` : '', 'arrows-h')}
+            {renderDetailRow('Left Thigh', measurements.leftThigh ? `${measurements.leftThigh} cm` : '', 'arrows-h')}
+            {renderDetailRow('Right Arm', measurements.rightArm ? `${measurements.rightArm} cm` : '', 'arrows-h')}
+            {renderDetailRow('Left Arm', measurements.leftArm ? `${measurements.leftArm} cm` : '', 'arrows-h')}
           </View>
+          <Text style={{ color: colors.mediumGray, fontSize: 12, marginTop: 10, textAlign: 'center' }}>
+            Measurements are updated by your trainer
+          </Text>
         </>,
         'male'
       )}
 
-      {/* Body Composition Analysis Section */}
       {renderModernCard(
-        'Body Composition Analysis',
+        'Body Composition Analysis (BCA)',
         <>
           <View style={AppStyles.bcaGrid}>
-            {renderDetailRow('Weight', bca.weight, 'balance-scale')}
+            {renderDetailRow('Weight', bca.weight ? `${bca.weight} kg` : '', 'balance-scale')}
             {renderDetailRow('BMI', bca.bmi, 'calculator')}
-            {renderDetailRow('Body Fat', bca.bodyFat, 'percent')}
-            {renderDetailRow('Muscle Rate', bca.muscleRate, 'dumbbell')}
+            {renderDetailRow('Body Fat', bca.bodyFat ? `${bca.bodyFat}%` : '', 'percent')}
+            {renderDetailRow('Muscle Mass', bca.muscleMassKg ? `${bca.muscleMassKg} kg` : '', 'child')}
           </View>
           <View style={AppStyles.bcaGrid}>
-            {renderDetailRow('Subcutaneous Fat', bca.subcutaneousFat, 'tint')}
+            {renderDetailRow('Subcutaneous Fat', bca.subcutaneousFat ? `${bca.subcutaneousFat}%` : '', 'tint')}
             {renderDetailRow('Visceral Fat', bca.visceralFat, 'heartbeat')}
-            {renderDetailRow('Body Age', bca.bodyAge, 'child')}
-            {renderDetailRow('BMR', bca.bmr, 'fire')}
+            {renderDetailRow('Body Age', bca.bodyAge ? `${bca.bodyAge} yrs` : '', 'user')}
+            {renderDetailRow('BMR', bca.bmr ? `${bca.bmr} kcal` : '', 'fire')}
           </View>
           <View style={AppStyles.bcaGrid}>
-            {renderDetailRow('Skeletal Mass', bca.skeletalMass, 'bone')}
-            {renderDetailRow('Muscle Mass', bca.muscleMass, 'male')}
-            {renderDetailRow('Bone Mass', bca.boneMass, 'medkit')}
-            {renderDetailRow('Protein', bca.protein, 'flask')}
+            {renderDetailRow('Skeletal Mass', bca.skeletalMass ? `${bca.skeletalMass} kg` : '', 'anchor')}
+            {renderDetailRow('Bone Mass', bca.boneMass ? `${bca.boneMass} kg` : '', 'medkit')}
+            {renderDetailRow('Protein', bca.protein ? `${bca.protein} kg` : '', 'flask')}
+            {renderDetailRow('Muscle %', bca.muscleMassPercent ? `${bca.muscleMassPercent}%` : '', 'line-chart')}
           </View>
+          <Text style={{ color: colors.mediumGray, fontSize: 12, marginTop: 10, textAlign: 'center' }}>
+            BCA data synced from ActiveX machine
+          </Text>
         </>,
         'heartbeat'
       )}
 
-      {/* Action Buttons */}
       <View style={AppStyles.profileActions}>
-        <TouchableOpacity style={AppStyles.primaryButton} onPress={() => Alert.alert('Success', 'Profile updated successfully!')}>
-          <Icon name="save" size={16} color={colors.lightGray} style={AppStyles.buttonIcon} />
-          <Text style={AppStyles.primaryButtonText}>Save Changes</Text>
+        <TouchableOpacity
+          style={[AppStyles.primaryButton, saving && { opacity: 0.6 }]}
+          onPress={handleSaveProfile}
+          disabled={saving}
+        >
+          {saving ? (
+            <ActivityIndicator color={colors.lightGray} size="small" />
+          ) : (
+            <>
+              <Icon name="save" size={16} color={colors.lightGray} style={AppStyles.buttonIcon} />
+              <Text style={AppStyles.primaryButtonText}>Save Changes</Text>
+            </>
+          )}
         </TouchableOpacity>
 
-        <TouchableOpacity style={AppStyles.secondaryButton} onPress={handleLogout}>
+        <TouchableOpacity style={AppStyles.secondaryButton} onPress={() => setShowLogoutConfirm(true)}>
           <Icon name="sign-out" size={16} color={colors.red} style={AppStyles.buttonIcon} />
           <Text style={AppStyles.secondaryButtonText}>Logout</Text>
         </TouchableOpacity>
       </View>
 
-      {/* Logout Confirmation Modal */}
       <Modal
         visible={showLogoutConfirm}
         transparent={true}
@@ -323,10 +333,10 @@ const ProfileScreen = ({ navigation }: ProfileScreenProps) => {
             </View>
             <Text style={AppStyles.modalText}>Are you sure you want to logout?</Text>
             <View style={AppStyles.modalButtons}>
-              <TouchableOpacity style={AppStyles.cancelButton} onPress={cancelLogout}>
+              <TouchableOpacity style={AppStyles.cancelButton} onPress={() => setShowLogoutConfirm(false)}>
                 <Text style={AppStyles.cancelButtonText}>Cancel</Text>
               </TouchableOpacity>
-              <TouchableOpacity style={AppStyles.confirmButton} onPress={confirmLogout}>
+              <TouchableOpacity style={AppStyles.confirmButton} onPress={handleLogout}>
                 <Text style={AppStyles.confirmButtonText}>Logout</Text>
               </TouchableOpacity>
             </View>
